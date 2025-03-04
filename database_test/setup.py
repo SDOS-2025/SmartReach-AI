@@ -1,9 +1,14 @@
-import psycopg2
+import mysql.connector as connector
 import config
 
-# Load database connection parameters
 params = config.config()
 
-# Connect to PostgreSQL
-connection = psycopg2.connect(**params)
-connection.autocommit = True
+# Connect to MySQL
+connection = connector.connect(**params)
+print('Connected to MySQL database')
+
+cursor = connection.cursor()
+cursor.execute('show databases;')
+cursor.fetchall()
+cursor.execute('use smartreach_db;')
+cursor.execute('show tables;')
