@@ -15,7 +15,7 @@ function NavigationMenu() {
     try {
         const response = await axios.get("http://127.0.0.1:8000/api/hello/");
         setMessage(response.data.message);
-        console.log("API Response:", response.data.message); // ✅ Log message to console
+        console.log("API Response:", response.data.message);
     } catch (error) {
         console.error("Error fetching data:", error);
         setMessage("Failed to fetch data.");
