@@ -1,3 +1,5 @@
+'use client';
+
 import React from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -5,6 +7,10 @@ import { Label } from '@/components/ui/label';
 import { Separator } from '@/components/ui/separator';
 
 const LoginCard = () => {
+  const handleGoogleLogin = () => {
+    window.location.href = 'http://localhost:8000/social-auth/login/google-oauth2/';
+  };
+
   return (
     <div className='p-8 my-auto bg-white rounded-lg shadow-md'>
         <h1 className='text-2xl font-bold mb-4'>Welcome to SmartReachAI</h1>
@@ -28,7 +34,7 @@ const LoginCard = () => {
             <Separator className='flex-auto' />
         </div>
         
-        <Button className='w-full bg-red-500 text-white py-2 rounded-md hover:bg-red-600'>Login with Google</Button>
+        <Button className='w-full bg-red-500 text-white py-2 rounded-md hover:bg-red-600' onClick={handleGoogleLogin}>Login with Google</Button>
     </div>
   );
 };
