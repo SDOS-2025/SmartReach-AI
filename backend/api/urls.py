@@ -1,7 +1,7 @@
 from django.urls import path
 from .views import (
     hello_world, 
-    login, 
+    login_view, 
     google_login,
     auth_complete,
     check_auth
@@ -9,7 +9,7 @@ from .views import (
 
 urlpatterns = [
     path('hello/', hello_world),
-    path('login/', login),
+    path('user-login/', login_view),
     path('google-login/', google_login),
     path('auth-complete/', auth_complete, name='auth-complete'),
     path('check-auth/', check_auth, name='check-auth'),

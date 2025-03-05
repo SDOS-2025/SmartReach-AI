@@ -4,9 +4,10 @@ from rest_framework.decorators import api_view
 from django.contrib.auth.decorators import login_required
 from django.http import JsonResponse
 from social_django.utils import load_strategy, load_backend
+from django.views.decorators.csrf import csrf_exempt
 from social_core.backends.oauth import BaseOAuth2
 from social_core.exceptions import MissingBackend
-from django.contrib.auth import login, authenticate, logout
+from django.contrib.auth import login, authenticate, logout, get_user_model
 
 # Create your views here.
 @api_view(['GET'])
@@ -15,14 +16,17 @@ def hello_world(request):
 
 
 @api_view(['POST'])
-def login(request):
+def login_view(request):
     username = request.data.get('username')
+    email = request.data.get('email')
     password = request.data.get('password')
 
-    if username in ['noel', 'mehul', 'rahul']:
-        if password == 'sdos':
-            return Response({'status': 'Successful'})
-    return Response({'status': 'Failed'})
+    user = authenticate(request, email=email, password=password)
+    if user is not None:
+        login(request, user)
+        return Response({'message': 'Login successful'})
+    else:
+        return Response({'error': 'Invalid credentials'}, status=401)
 
 
 @api_view(['GET'])
