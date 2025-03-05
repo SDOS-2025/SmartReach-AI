@@ -250,3 +250,9 @@ CORS_ALLOWED_ORIGINS = [
 SOCIAL_AUTH_STRATEGY = 'social_django.strategy.DjangoStrategy'
 SOCIAL_AUTH_STORAGE = 'social_django.models.DjangoStorage'
 SOCIAL_AUTH_FIELDS_STORED_IN_SESSION = ['state']
+
+# Custom User Model
+AUTH_USER_MODEL = 'api.User'
+
+# Social Auth Settings
+SOCIAL_AUTH_USER_MODEL = 'api.User'
