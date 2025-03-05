@@ -11,7 +11,7 @@ function EmailPage() {
 
   // First set of questions (Step 1)
   const renderStep1 = () => (
-    <div className="bg-yellow-200 flex-[6] overflow-y-auto h-full px-10 text-lg">
+    <div className="flex-[6] overflow-y-auto h-full px-10 text-lg">
       <div className="mb-4">
         <Label htmlFor="goal" className="text-lg">What is the goal of the email?</Label>
         <Select name="goal">
@@ -63,7 +63,7 @@ function EmailPage() {
           name="advertising"
           id="advertising"
           placeholder="Enter Text"
-          className="w-full h-20 mt-2 p-2 border border-gray-300 rounded-md bg-gray-100"
+          className="w-full h-20 mt-2 p-2 border border-gray-300 rounded-md bg-gray-100 resize-none"
         />
       </div>
       <div className="mb-4">
@@ -72,7 +72,7 @@ function EmailPage() {
           name="content"
           id="content"
           placeholder="Enter Text"
-          className="w-full h-32 mt-2 p-2 border border-gray-300 rounded-md bg-gray-100"
+          className="w-full h-32 mt-2 p-2 border border-gray-300 rounded-md bg-gray-100 resize-none"
         />
       </div>
     </div>
@@ -80,7 +80,7 @@ function EmailPage() {
 
   // Second set of questions (Step 2)
   const renderStep2 = () => (
-    <div className="bg-yellow-200 flex-[6] overflow-y-auto h-full px-10 text-lg">
+    <div className="flex-[6] overflow-y-auto h-full px-10 text-lg">
       <div className="mb-4">
         <Label htmlFor="callToAction" className="text-lg">What is your call to action?</Label>
         <Select name="callToAction">
@@ -117,7 +117,7 @@ function EmailPage() {
           name="additionalInfo"
           id="additionalInfo"
           placeholder="Enter Text"
-          className="w-full h-20 mt-2 p-2 border border-gray-300 rounded-md bg-gray-100"
+          className="w-full h-20 mt-2 p-2 resize-none border border-gray-300 rounded-md bg-gray-100"
         />
       </div>
     </div>
@@ -125,14 +125,14 @@ function EmailPage() {
 
   // Third set of questions (Step 3) - Placeholder (customize as needed)
   const renderStep3 = () => (
-    <div className="bg-yellow-200 flex-[6] overflow-y-auto h-full px-10 text-lg">
+    <div className="flex-[6] overflow-y-auto h-full px-10 text-lg">
       <div className="mb-4">
         <Label htmlFor="subject" className="text-lg">What is the subject line?</Label>
         <Textarea
           name="subject"
           id="subject"
           placeholder="Enter Subject"
-          className="w-full h-14 mt-2 p-2 border border-gray-300 rounded-md bg-gray-100"
+          className="w-full h-14 mt-2 p-2 border border-gray-300 resize-none rounded-md bg-gray-100"
         />
       </div>
       <div className="mb-4">
@@ -164,47 +164,56 @@ function EmailPage() {
   };
 
   return (
-    <div className="flex flex-col justify-start bg-blue-500 w-screen h-screen">
-      <div className="bg-white h-20 flex-none">
+    <div className="flex flex-col justify-start w-screen h-screen">
+      <div className="h-20 flex-none">
         <NavigationMenu />
       </div>
-      <div className="bg-yellow-500 flex flex-auto flex-col md:flex-row">
+      <div className="flex flex-auto flex-col md:flex-row">
         {/* Sidebar */}
-        <div className="w-screen md:w-1/12 bg-gray-200 flex flex-col justify-start items-center py-5 space-y-4">
+        <div className="w-screen md:w-[6rem] bg-[#0F142E] flex md:flex-col justify-center items-center py-5 space-x-6 md:space-y-12 space-x-0 ">
             <Button
-              className={`w-3/4 py-2 rounded-md text-lg ${currentStep === 1 ? 'bg-blue-500 text-white' : 'bg-gray-300 text-black'}`}
+              className={`w-16 h-16 rounded-full hover:bg-[#A3A4B3] flex items-center justify-center p-0 ${
+                currentStep === 1 ? 'bg-[#DCDDEB] text-black' : 'bg-[#494965] text-black'
+              }`}
               onClick={() => goToStep(1)}
             >
-              Step 1
+              {/* <FaCircle className="text-2xl" /> */}
+              <span className="absolute text-sm">1</span>
             </Button>
             <Button
-              className={`w-3/4 py-2 rounded-md text-lg ${currentStep === 2 ? 'bg-blue-500 text-white' : 'bg-gray-300 text-black'}`}
+              className={`w-16 h-16 rounded-full hover:bg-[#A3A4B3] flex items-center justify-center p-0 ${
+                currentStep === 2 ? 'bg-[#DCDDEB] text-black' : 'bg-[#494965] text-black'
+              }`}
               onClick={() => goToStep(2)}
             >
-              Step 2
+              {/* <FaCircle className="text-2xl" /> */}
+              <span className="absolute text-sm">2</span>
             </Button>
             <Button
-              className={`w-3/4 py-2 rounded-md text-lg ${currentStep === 3 ? 'bg-blue-500 text-white' : 'bg-gray-300 text-black'}`}
+              className={`w-16 h-16 rounded-full hover:bg-[#A3A4B3] flex items-center justify-center p-0 ${
+                currentStep === 3 ? 'bg-[#DCDDEB] text-black' : 'bg-[#494965] text-black'
+              }`}
               onClick={() => goToStep(3)}
             >
-              Step 3
+              {/* <FaCircle className="text-2xl" /> */}
+              <span className="absolute text-sm">3</span>
             </Button>
           </div>
 
         {/* Main Section */}
-        <div className="bg-red-100 h-[calc(100vh-5rem)] w-screen md:w-7/12 px-10 py-10 flex flex-row">
+        <div className="h-[calc(100vh-5rem)] w-screen md:w-6/12 px-10 py-10 flex flex-row">
           
           {/* Main Questions Area */}
-          <div className="w-full bg-yellow-500 h-full flex flex-col">
-            <div className="bg-yellow-100 flex-[1] flex flex-col justify-center items-center text-xl">
+          <div className="w-full  h-full flex flex-col">
+            <div className="flex-[1] flex flex-col justify-center items-center text-xl">
               AI Enabled Template Generator
             </div>
             {currentStep === 1 && renderStep1()}
             {currentStep === 2 && renderStep2()}
             {currentStep === 3 && renderStep3()}
-            <div className="bg-yellow-800 flex-[1] flex flex-col justify-center items-center">
+            <div className=" flex-[1] flex flex-col justify-center items-center">
               <Button
-                className="text-lg bg-blue-500 text-white py-2 mt-1 rounded-md hover:bg-blue-600"
+                className="text-lg bg-[#0F142E] text-white py-8 px-16 mt-3 rounded-full hover:bg-[#434C7B]"
                 onClick={handleNextStep}
               >
                 Choose this template --next
@@ -214,7 +223,7 @@ function EmailPage() {
         </div>
 
         {/* Email content */}
-        <div className="bg-red-500 flex items-center justify-center h-[20rem] md:h-full flex-auto p-10">
+        <div className="bg-[#0F142E] flex items-center justify-center h-[20rem] md:h-full flex-auto p-10">
           <Textarea
             className="text-lg w-full h-full p-10 bg-white rounded-lg resize-none"
             name="textarea"

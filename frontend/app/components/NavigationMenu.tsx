@@ -9,10 +9,10 @@ function NavigationMenu() {
 
 
   return (
-    <nav className="flex items-center justify-between px-6 py-4 h-full w-full">
+    <nav className="flex bg-[#0F142E] items-center justify-between px-6 py-4 h-full w-full">
 
-      <div className="flex items-center gap-8">
-        <Link href="/home" className="text-xl font-bold">
+      <div className="flex ml-10 md:ml-20 items-center gap-8">
+        <Link href="/" className="text-xl text-white font-bold">
           SmartReachAI
         </Link>
       </div>
