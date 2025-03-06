@@ -5,6 +5,8 @@ import { Textarea } from '@/components/ui/textarea';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { FaArrowRight, FaArrowLeft, FaQuestion, FaDatabase, FaTelegramPlane } from 'react-icons/fa';
+
 
 function EmailPage() {
   const [currentStep, setCurrentStep] = useState(1); // Track the current step
@@ -154,8 +156,13 @@ function EmailPage() {
   );
 
   // Handle "Next" button click (no looping)
-  const handleNextStep = () => {
-    setCurrentStep((prevStep) => (prevStep < 3 ? prevStep + 1 : 3)); // Stop at Step 3
+  const handleNextStep = (direction: number) => {
+    setCurrentStep((prevStep) => {
+      const newStep = prevStep + direction;
+      if (newStep < 1) return 1; // Prevent going below step 1
+      if (newStep > 3) return 3; // Prevent going above step 3
+      return newStep;
+    });
   };
 
   // Handle sidebar button clicks
@@ -170,15 +177,15 @@ function EmailPage() {
       </div>
       <div className="flex flex-auto flex-col md:flex-row">
         {/* Sidebar */}
-        <div className="w-screen md:w-[6rem] bg-[#0F142E] flex md:flex-col justify-center items-center py-5 space-x-6 md:space-y-12 space-x-0 ">
+        <div className="w-screen md:w-[6rem] bg-[#0F142E] flex md:flex-col justify-center items-center py-5 space-x-6 md:space-y-12 md:space-x-0 ">
             <Button
               className={`w-16 h-16 rounded-full hover:bg-[#A3A4B3] flex items-center justify-center p-0 ${
                 currentStep === 1 ? 'bg-[#DCDDEB] text-black' : 'bg-[#494965] text-black'
               }`}
               onClick={() => goToStep(1)}
             >
-              {/* <FaCircle className="text-2xl" /> */}
-              <span className="absolute text-sm">1</span>
+              <FaQuestion className="!w-[40%] !h-[40%]" /> 
+
             </Button>
             <Button
               className={`w-16 h-16 rounded-full hover:bg-[#A3A4B3] flex items-center justify-center p-0 ${
@@ -186,18 +193,18 @@ function EmailPage() {
               }`}
               onClick={() => goToStep(2)}
             >
-              {/* <FaCircle className="text-2xl" /> */}
-              <span className="absolute text-sm">2</span>
+               <FaDatabase className="!w-[40%] !h-[40%]" /> 
+
             </Button>
-            <Button
+            <Button 
               className={`w-16 h-16 rounded-full hover:bg-[#A3A4B3] flex items-center justify-center p-0 ${
                 currentStep === 3 ? 'bg-[#DCDDEB] text-black' : 'bg-[#494965] text-black'
               }`}
               onClick={() => goToStep(3)}
             >
-              {/* <FaCircle className="text-2xl" /> */}
-              <span className="absolute text-sm">3</span>
+              <FaTelegramPlane className="!w-[40%] !h-[40%]" /> {/* Increased size */}
             </Button>
+
           </div>
 
         {/* Main Section */}
@@ -211,12 +218,21 @@ function EmailPage() {
             {currentStep === 1 && renderStep1()}
             {currentStep === 2 && renderStep2()}
             {currentStep === 3 && renderStep3()}
-            <div className=" flex-[1] flex flex-col justify-center items-center">
+            <div className="flex-[1] flex justify-center items-center">
               <Button
-                className="text-lg bg-[#0F142E] text-white py-8 px-16 mt-3 rounded-full hover:bg-[#434C7B]"
-                onClick={handleNextStep}
+                className="text-lg bg-[#0F142E] text-white py-8 px-10 mr-2 rounded-full hover:bg-[#434C7B]"
+                onClick={() => handleNextStep(-1)} // Assuming handleNextStep can handle going back
               >
-                Choose this template --next
+                <FaArrowLeft />
+                <span className="ml-2">Back</span>
+              </Button>
+
+              <Button
+                className="text-lg bg-[#0F142E] text-white py-8 px-10 rounded-full hover:bg-[#434C7B]"
+                onClick={() => handleNextStep(1)} // Assuming handleNextStep can handle going forward
+              >
+                <span className="mr-2">Choose this template</span>
+                <FaArrowRight />
               </Button>
             </div>
           </div>
