@@ -1,3 +1,3 @@
-from .login_models import User
+from .login_models import User, Organization
 
-__all__ = ['User'] 
+__all__ = ['User', 'Organization'] 

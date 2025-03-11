@@ -1,15 +1,22 @@
+import json
+from datetime import datetime
+import pytz
 from django.shortcuts import render, redirect
+from django.core.mail import send_mail, get_connection
+from django.http import JsonResponse
+from django.views.decorators.csrf import csrf_exempt
+from django.contrib import messages
+from django.utils.timezone import make_aware
 from rest_framework.response import Response
 from rest_framework.decorators import api_view
 from django.contrib.auth.decorators import login_required
-from django.http import JsonResponse
 from social_django.utils import load_strategy, load_backend
-from django.views.decorators.csrf import csrf_exempt
 from social_core.backends.oauth import BaseOAuth2
 from social_core.exceptions import MissingBackend
 from django.contrib.auth import login, authenticate, logout, get_user_model
+from api.models import User, Organization
 
-# Create your views here.
+
 @api_view(['GET'])
 def hello_world(request):
     return Response({"message": "Hello from Django!"})
@@ -61,27 +68,6 @@ def check_auth(request):
             }
         })
     return Response({'is_authenticated': False})
-
-
-
-
-
-
-
-from django.shortcuts import render
-from django.core.mail import send_mail, get_connection
-from django.http import JsonResponse
-from django.views.decorators.csrf import csrf_exempt
-from django.contrib import messages
-from django.utils.timezone import make_aware
-from datetime import datetime
-import pytz
-import json
-
-from api.tasks import send_scheduled_email
-from api.sto_model import get_optimal_send_time
-# from api.models import UserEngagement
-# from api.models import Organization, CompanyUser
 
 def convert_ist_to_utc(ist_date, ist_time):
     """Convert IST date and time to UTC."""
@@ -153,3 +139,46 @@ def sto_view(request):
             return JsonResponse({"error": "Invalid JSON data"}, status=400)
 
     return JsonResponse({"error": "Invalid request method"}, status=405)
+
+def populate_users(request):
+    return JsonResponse({"message": "Users and organizations created successfully"})
+
+@api_view(['POST'])
+def signup_individuals(request):
+    username = request.data.get('username')
+    email = request.data.get('email')
+    password = request.data.get('password')
+
+    try:
+        user = User.objects.create_user(username=username, email=email, password=password)
+        user.save()
+        return Response({'message': 'User created successfully'})
+    
+    except IntegrityError:
+        return Response({'error': 'A user with that username or email already exists.'})
+
+    except Exception as e:
+        return Response({'error': str(e)})
+
+@api_view(['POST'])
+def signup_business(request):
+    username = request.data.get('username')
+    email = request.data.get('email')
+    password = request.data.get('password')
+    email_host_user = request.data.get('email_host_user')
+    email_host_password = request.data.get('email_host_password')
+    email_host = request.data.get('email_host')
+    email_port = request.data.get('email_port')
+    email_use_tls = request.data.get('email_use_tls')
+
+    try:
+        user = User.objects.create_user(username=username, email=email, password=password)
+        org = Organization(org_id=user, email_host_user=email_host_user, email_host_password=email_host_password, email_host=email_host, email_port=email_port, email_use_tls=email_use_tls)
+        org.save()
+        return Response({'message': 'User and organization created successfully'})
+
+    except IntegrityError:
+        return Response({'error': 'A user with that username or email already exists.'})
+    
+    except Exception as e:
+        return Response({'error': str(e)})

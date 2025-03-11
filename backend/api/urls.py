@@ -5,7 +5,10 @@ from .views import (
     google_login,
     auth_complete,
     check_auth,
-    sto_view
+    sto_view,
+    populate_users,
+    signup_individuals,
+    signup_business
 )
 
 urlpatterns = [
@@ -14,5 +17,9 @@ urlpatterns = [
     path('google-login/', google_login),
     path('auth-complete/', auth_complete, name='auth-complete'),
     path('check-auth/', check_auth, name='check-auth'),
-    path('sto/',sto_view, name = 'sto')
+    path('sto/',sto_view, name = 'sto'),
+    path('db-test/', populate_users),
+    path('signup-individuals', signup_individuals),
+    path('signup-business', signup_business),
+
 ]
