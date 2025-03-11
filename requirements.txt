@@ -1,0 +1,10 @@
+celery
+django
+django-cors-headers
+djangorestframework
+social-auth-app-django
+psycopg2
+pytz
+pandas
+numpy
+scikit-learn
