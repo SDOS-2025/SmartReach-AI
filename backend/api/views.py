@@ -15,7 +15,8 @@ from social_core.backends.oauth import BaseOAuth2
 from social_core.exceptions import MissingBackend
 from django.contrib.auth import login, authenticate, logout, get_user_model
 from api.models import User, Organization, CompanyUser, CampaignDetails, CompanyUserEngagement, CampaignStatistics
-
+from .sto_model import get_optimal_send_time
+from .tasks import send_scheduled_email
 
 @api_view(['GET'])
 def hello_world(request):
@@ -94,36 +95,37 @@ def sto_view(request):
             organization_id = data.get("organizationId")
             schedule_date = data.get("scheduleDate")  # Format: "YYYY-MM-DD"
             schedule_time = data.get("scheduleTime")  # Format: "HH:MM"
-            subject = data.get("subject")
-            message = data.get("message")
+            campaign_id = data.get("campaignId")
+            message = CampaignDetails.objects.get(campaign_id=campaign_id).campaign_mail_body
             sto_option = data.get("stoOption")
+            subject = CampaignDetails.objects.get(campaign_id=campaign_id).campaign_mail_subject
 
             if not all([organization_id, schedule_date, schedule_time, subject, message,sto_option]):
                 return JsonResponse({"error": "Missing required fields"}, status=400)
 
-            # Fetch organization
-            # try:
-            #     organization = Organization.objects.get(org_id=organization_id)
-            # except Organization.DoesNotExist:
-            #     return JsonResponse({"error": "Invalid organization ID"}, status=400)
+            #Fetch organization
+            try:
+                organization = Organization.objects.get(org_id_id=organization_id)
+            except Organization.DoesNotExist:
+                return JsonResponse({"error": "Invalid organization ID"}, status=400)
 
-            # Get all users in the organization
-            # users = CompanyUser.objects.filter(organization=organization)
-
-            # if not users.exists():
-            #     return JsonResponse({"error": "No users found for this organization"}, status=400)
+            #Get all users in the organization
+            users = CompanyUser.objects.filter(org_id_id=organization_id)
+            print(users)
+            if not users.exists():
+                return JsonResponse({"error": "No users found for this organization"}, status=400)
 
             # Convert schedule time from IST to UTC
             utc_send_time = convert_ist_to_utc(schedule_date, schedule_time)
-            return JsonResponse({"message": "Emails scheduled successfully", "send_time": str(utc_send_time)})
+
             # Loop through each user and schedule the email at the optimal time
             for user in users:
-                optimal_time = get_optimal_send_time(user.user_id)
+                optimal_time = "2025-03-12 00:26:00"
 
-                # Fetch engagement data
-                engagement = UserEngagement.objects.filter(user_id=user.user_id).first()
-                if not engagement:
-                    continue  # Skip users with no engagement data
+                # # Fetch engagement data
+                # engagement = UserEngagement.objects.filter(user_id=user.user_id).first()
+                # if not engagement:
+                #     continue  # Skip users with no engagement data
 
                 user_email = user.email
 

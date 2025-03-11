@@ -1,11 +1,11 @@
 from celery import shared_task
 from django.core.mail import send_mail, get_connection
-# from users.models import Organization
+from .models import Organization
 
 @shared_task
 def send_scheduled_email(organization_id, user_email, subject, message):
     try:
-        organization = Organization.objects.get(org_id=organization_id)
+        organization = Organization.objects.get(org_id_id=organization_id)
 
 
         connection = get_connection(
