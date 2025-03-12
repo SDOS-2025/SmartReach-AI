@@ -8,12 +8,13 @@ from .views import (
     sto_view,
     populate_users,
     signup_individuals,
-    signup_business
+    signup_business,
+    generate_template
 )
 
 urlpatterns = [
     path('hello/', hello_world),
-    path('user-login/', login_view),
+    path('user-login', login_view),
     path('google-login/', google_login),
     path('auth-complete/', auth_complete, name='auth-complete'),
     path('check-auth/', check_auth, name='check-auth'),
@@ -21,5 +22,6 @@ urlpatterns = [
     path('db-test/', populate_users),
     path('signup-individuals', signup_individuals),
     path('signup-business', signup_business),
+    path('generate-template', generate_template)
 
 ]

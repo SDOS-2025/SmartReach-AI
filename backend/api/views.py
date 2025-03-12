@@ -17,6 +17,9 @@ from django.contrib.auth import login, authenticate, logout, get_user_model
 from api.models import User, Organization, CompanyUser, CampaignDetails, CompanyUserEngagement, CampaignStatistics
 from .sto_model import get_optimal_send_time
 from .tasks import send_scheduled_email
+from .LLM_template_generator import TemplateGenerator
+
+template_generator = TemplateGenerator()
 
 @api_view(['GET'])
 def hello_world(request):
@@ -26,15 +29,16 @@ def hello_world(request):
 @api_view(['POST'])
 def login_view(request):
     username = request.data.get('username')
-    email = request.data.get('email')
     password = request.data.get('password')
 
-    user = authenticate(request, email=email, password=password)
-    if user is not None:
-        login(request, user)
-        return Response({'message': 'Login successful'})
-    else:
-        return Response({'error': 'Invalid credentials'}, status=401)
+    print(username,password)
+
+    user = User.objects.filter(username=username).first()
+    if user is None:
+        return Response({'error': 'Invalid username'}, status=400)
+
+    request.session['user_id'] = user.user_id
+    return Response({'message': 'Login successful'})
 
 
 @api_view(['GET'])
@@ -144,170 +148,174 @@ def sto_view(request):
 
 def populate_users(request):
 
-    User.objects.all().delete()
-    Organization.objects.all().delete()
-    CompanyUser.objects.all().delete()
-    CampaignDetails.objects.all().delete()
-    CompanyUserEngagement.objects.all().delete()
-    CampaignStatistics.objects.all().delete()
+    # User.objects.all().delete()
+    # Organization.objects.all().delete()
+    # CompanyUser.objects.all().delete()
+    # CampaignDetails.objects.all().delete()
+    # CompanyUserEngagement.objects.all().delete()
+    # CampaignStatistics.objects.all().delete()
 
 
-    # Create Users
-    users = [
-        {'username': 'noeltiju', 'email': 'noelab04@gmail.com', 'password': 'sdos'},
-        {'username': 'mehul', 'email': 'mehul@gmail.com', 'password': 'sdos'},
-        {'username': 'tharun', 'email': 'tharun@gmail.com', 'password': 'sdos'},
-        {'username': 'rahul', 'email': 'rahul@gmail.com', 'password': 'sdos'},
-    ]
+    # # Create Users
+    # users = [
+    #     {'username': 'noeltiju', 'email': 'noelab04@gmail.com', 'password': 'sdos'},
+    #     {'username': 'mehul', 'email': 'mehul@gmail.com', 'password': 'sdos'},
+    #     {'username': 'tharun', 'email': 'tharun@gmail.com', 'password': 'sdos'},
+    #     {'username': 'rahul', 'email': 'rahul@gmail.com', 'password': 'sdos'},
+    # ]
 
-    for user in users:
-        User.objects.create_user(
-            username=user['username'],
-            email=user['email'],
-            password=user['password']
-        )
+    # for user in users:
+    #     User.objects.create_user(
+    #         username=user['username'],
+    #         email=user['email'],
+    #         password=user['password']
+    #     )
 
-    # Create Organization
-    user = User.objects.get(username="rahul")
-    organizations = [
-        {
-            'org_id': user,
-            'email_host_user': 'rahul22392@iiitd.ac.in',
-            'email_host_password': '',
-            'email_host': "smtp.gmail.com",
-        },
-    ]
+    # # Create Organization
+    # user = User.objects.get(username="rahul")
+    # organizations = [
+    #     {
+    #         'org_id': user,
+    #         'email_host_user': 'rahul22392@iiitd.ac.in',
+    #         'email_host_password': '',
+    #         'email_host': "smtp.gmail.com",
+    #     },
+    # ]
 
-    for organization in organizations:
-        Organization.objects.create(**organization)
+    # for organization in organizations:
+    #     Organization.objects.create(**organization)
 
-    org_instance = Organization.objects.get(email_host_user="rahul22392@iiitd.ac.in")
+    # org_instance = Organization.objects.get(email_host_user="rahul22392@iiitd.ac.in")
 
-    # Create CompanyUsers (fix org_id to use Organization instance)
-    company_users = [
-        {
-            "org_id": org_instance,  # Use Organization instance, not User
-            "email": "noel22338@iiitd.ac.in",  # Fixed typo
-            "age": 21,
-            "first_name": "Noel",
-            "last_name": "Tiju",
-            "gender": "M",
-            "location": "Kerala",
-            "timezone": "IST",
-        },
-        {
-            "org_id": org_instance,
-            "email": "mehul22294@iiitd.ac.in",
-            "age": 20,
-            "first_name": "Mehul",
-            "last_name": "Agarwal",
-            "gender": "F",
-            "location": "Delhi",
-            "timezone": "IST",
-        },
-        {
-            "org_id": org_instance,
-            "email": "tharun22541@iiitd.ac.in",
-            "age": 22,
-            "first_name": "Tharun",
-            "last_name": "Harish",
-            "gender": "M",
-            "location": "Tamil Nadu",
-            "timezone": "IST",
-        },
-    ]
+    # # Create CompanyUsers (fix org_id to use Organization instance)
+    # company_users = [
+    #     {
+    #         "org_id": org_instance,  # Use Organization instance, not User
+    #         "email": "noel22338@iiitd.ac.in",  # Fixed typo
+    #         "age": 21,
+    #         "first_name": "Noel",
+    #         "last_name": "Tiju",
+    #         "gender": "M",
+    #         "location": "Kerala",
+    #         "timezone": "IST",
+    #     },
+    #     {
+    #         "org_id": org_instance,
+    #         "email": "mehul22294@iiitd.ac.in",
+    #         "age": 20,
+    #         "first_name": "Mehul",
+    #         "last_name": "Agarwal",
+    #         "gender": "F",
+    #         "location": "Delhi",
+    #         "timezone": "IST",
+    #     },
+    #     {
+    #         "org_id": org_instance,
+    #         "email": "tharun22541@iiitd.ac.in",
+    #         "age": 22,
+    #         "first_name": "Tharun",
+    #         "last_name": "Harish",
+    #         "gender": "M",
+    #         "location": "Tamil Nadu",
+    #         "timezone": "IST",
+    #     },
+    # ]
 
-    for company_user in company_users:
-        CompanyUser.objects.create(**company_user)
+    # for company_user in company_users:
+    #     CompanyUser.objects.create(**company_user)
 
-    campaign_details = [
-        {
-            'org_id': org_instance,  # Use Organization instance
-            'campaign_name': 'Campaign 1',
-            'campaign_description': 'Launch campaign for the new Tesla Model Y, targeting early adopters and tech-savvy consumers with exclusive pre-order offers and innovative technology highlights.',
-            'campaign_start_date': datetime.strptime('2021-09-01 00:00', '%Y-%m-%d %H:%M'),
-            'campaign_end_date': datetime.strptime('2021-09-30 23:59', '%Y-%m-%d %H:%M'),
-            'campaign_mail_body': (
-                'Hello,\n\n'
-                'We are excited to introduce the Tesla Model Y, the latest in our lineup of cutting-edge vehicles. '
-                'Join us for an exclusive pre-order experience and be among the first to experience its groundbreaking features. '
-                'For more details, visit our website or contact our sales team.\n\n'
-                'Best regards,\n'
-                'Tesla Marketing Team'
-            ),
-            'campaign_mail_subject': 'Introducing the All-New Tesla Model Y – Pre-Order Now!',
-            'send_time': datetime.strptime('2021-09-01 10:00', '%Y-%m-%d %H:%M'),
-        },
-    ]
+    # campaign_details = [
+    #     {
+    #         'org_id': org_instance,  # Use Organization instance
+    #         'campaign_name': 'Campaign 1',
+    #         'campaign_description': 'Launch campaign for the new Tesla Model Y, targeting early adopters and tech-savvy consumers with exclusive pre-order offers and innovative technology highlights.',
+    #         'campaign_start_date': datetime.strptime('2021-09-01 00:00', '%Y-%m-%d %H:%M'),
+    #         'campaign_end_date': datetime.strptime('2021-09-30 23:59', '%Y-%m-%d %H:%M'),
+    #         'campaign_mail_body': (
+    #             'Hello,\n\n'
+    #             'We are excited to introduce the Tesla Model Y, the latest in our lineup of cutting-edge vehicles. '
+    #             'Join us for an exclusive pre-order experience and be among the first to experience its groundbreaking features. '
+    #             'For more details, visit our website or contact our sales team.\n\n'
+    #             'Best regards,\n'
+    #             'Tesla Marketing Team'
+    #         ),
+    #         'campaign_mail_subject': 'Introducing the All-New Tesla Model Y – Pre-Order Now!',
+    #         'send_time': datetime.strptime('2021-09-01 10:00', '%Y-%m-%d %H:%M'),
+    #     },
+    # ]
 
-    for campaign in campaign_details:
-        CampaignDetails.objects.create(**campaign)
+    # for campaign in campaign_details:
+    #     CampaignDetails.objects.create(**campaign)
 
-    campaign = CampaignDetails.objects.get(campaign_name="Campaign 1")
+    # campaign = CampaignDetails.objects.get(campaign_name="Campaign 1")
 
-    company_user1 = CompanyUser.objects.get(email="noel22338@iiitd.ac.in")
-    company_user2 = CompanyUser.objects.get(email="mehul22294@iiitd.ac.in")
-    company_user3 = CompanyUser.objects.get(email="tharun22541@iiitd.ac.in")
+    # company_user1 = CompanyUser.objects.get(email="noel22338@iiitd.ac.in")
+    # company_user2 = CompanyUser.objects.get(email="mehul22294@iiitd.ac.in")
+    # company_user3 = CompanyUser.objects.get(email="tharun22541@iiitd.ac.in")
 
-    company_user_engagement = [
-        {
-            "user_id": company_user1,
-            "campaign_id": campaign,
-            "org_id": org_instance,
-            "send_time": datetime.strptime("2021-08-15 12:00", "%Y-%m-%d %H:%M"),
-            "open_time": datetime.strptime("2021-08-15 12:05", "%Y-%m-%d %H:%M"),
-            "click_rate": 0.80,
-            "open_rate": 0.80,
-            "engagement_delay": 5.0,  # In hours (should be 0.0833 for 5 minutes, see note below)
-        },
-        {
-            "user_id": company_user2,
-            "campaign_id": campaign,
-            "org_id": org_instance,
-            "send_time": datetime.strptime("2021-08-20 10:00", "%Y-%m-%d %H:%M"),
-            "open_time": datetime.strptime("2021-08-20 10:03", "%Y-%m-%d %H:%M"),
-            "click_rate": 0.60,
-            "open_rate": 0.60,
-            "engagement_delay": 3.0,  # In hours (should be 0.05 for 3 minutes)
-        },
-        {
-            "user_id": company_user3,
-            "campaign_id": campaign,
-            "org_id": org_instance,
-            "send_time": datetime.strptime("2021-08-25 15:00", "%Y-%m-%d %H:%M"),
-            "open_time": datetime.strptime("2021-08-25 15:10", "%Y-%m-%d %H:%M"),
-            "click_rate": 0.90,
-            "open_rate": 0.90,
-            "engagement_delay": 10.0,  # In hours (should be 0.1667 for 10 minutes)
-        },
-    ]
+    # company_user_engagement = [
+    #     {
+    #         "user_id": company_user1,
+    #         "campaign_id": campaign,
+    #         "org_id": org_instance,
+    #         "send_time": datetime.strptime("2021-08-15 12:00", "%Y-%m-%d %H:%M"),
+    #         "open_time": datetime.strptime("2021-08-15 12:05", "%Y-%m-%d %H:%M"),
+    #         "click_rate": 0.80,
+    #         "open_rate": 0.80,
+    #         "engagement_delay": 5.0,  # In hours (should be 0.0833 for 5 minutes, see note below)
+    #     },
+    #     {
+    #         "user_id": company_user2,
+    #         "campaign_id": campaign,
+    #         "org_id": org_instance,
+    #         "send_time": datetime.strptime("2021-08-20 10:00", "%Y-%m-%d %H:%M"),
+    #         "open_time": datetime.strptime("2021-08-20 10:03", "%Y-%m-%d %H:%M"),
+    #         "click_rate": 0.60,
+    #         "open_rate": 0.60,
+    #         "engagement_delay": 3.0,  # In hours (should be 0.05 for 3 minutes)
+    #     },
+    #     {
+    #         "user_id": company_user3,
+    #         "campaign_id": campaign,
+    #         "org_id": org_instance,
+    #         "send_time": datetime.strptime("2021-08-25 15:00", "%Y-%m-%d %H:%M"),
+    #         "open_time": datetime.strptime("2021-08-25 15:10", "%Y-%m-%d %H:%M"),
+    #         "click_rate": 0.90,
+    #         "open_rate": 0.90,
+    #         "engagement_delay": 10.0,  # In hours (should be 0.1667 for 10 minutes)
+    #     },
+    # ]
 
-    for engagement in company_user_engagement:
-        CompanyUserEngagement.objects.create(**engagement)
+    # for engagement in company_user_engagement:
+    #     CompanyUserEngagement.objects.create(**engagement)
 
-    print('Done populating users, organizations, company users, campaigns, and engagements')
+    # print('Done populating users, organizations, company users, campaigns, and engagements')
 
-    campaign_statistics = [
-        {
-            'campaign_id': campaign,
-            'org_id': org_instance,
-            'user_click_rate': 0.77,
-            'user_open_rate': 0.77,
-            'user_engagement_delay': 6.0,
-            'user_engagement_rate': 0.77,
-        },
-    ]
+    # campaign_statistics = [
+    #     {
+    #         'campaign_id': campaign,
+    #         'org_id': org_instance,
+    #         'user_click_rate': 0.77,
+    #         'user_open_rate': 0.77,
+    #         'user_engagement_delay': 6.0,
+    #         'user_engagement_rate': 0.77,
+    #     },
+    # ]
 
-    for stats in campaign_statistics:
-        CampaignStatistics.objects.create(**stats)
+    # for stats in campaign_statistics:
+    #     CampaignStatistics.objects.create(**stats)
     
-    print('Done populating campaign statistics')
+    # print('Done populating campaign statistics')
 
-    print(User.objects.count())  # Should be 4
-    print(Organization.objects.count())  # Should be 1
-    print(CompanyUser.objects.count())  # Should be 3
-    print(CampaignDetails.objects.count())  # Should be 1
-    print(CompanyUserEngagement.objects.count())  # Should be 3
+    # print(User.objects.count())  # Should be 4
+    # print(Organization.objects.count())  # Should be 1
+    # print(CompanyUser.objects.count())  # Should be 3
+    # print(CampaignDetails.objects.count())  # Should be 1
+    # print(CompanyUserEngagement.objects.count())  # Should be 3
+
+    orgs = Organization.objects.all()
+    for org in orgs:
+        print(org.org_id_id)
 
 
 
@@ -352,3 +360,43 @@ def signup_business(request):
     
     except Exception as e:
         return Response({'error': str(e)})
+
+
+@api_view(['POST'])
+def generate_template(request):
+    category = request.data.get('category')
+    tone = request.data.get('tone')
+    content_type = request.data.get('contentType')
+    company_description = request.data.get('companyDescription')
+    email_purpose = request.data.get('emailPurpose')
+    audience_type = request.data.get('audienceType')
+    preferred_length = request.data.get('preferredLength')
+    cta = request.data.get('cta')
+    custom_cta = request.data.get('customCta')
+    email_structure = request.data.get('emailStructure')
+
+    response_data = {
+        'category': category,
+        'tone': tone,
+        'contentType': content_type,
+        'companyDescription': company_description,
+        'emailPurpose': email_purpose,
+        'audienceType': audience_type,
+        'preferredLength': preferred_length,
+        'cta': cta,
+        'emailStructure': email_structure
+    }
+
+    for field, value in response_data.items():
+        if not value:
+            return Response({'error': f'Missing required field: {field}'})
+
+    template = template_generator.generate(response_data)
+    request.session['generated_template'] = template
+    if not template:
+        return Response({'error': 'Error generating template'})
+    
+    return Response(template)
+
+    
+    
