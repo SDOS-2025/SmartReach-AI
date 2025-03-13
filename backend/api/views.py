@@ -18,7 +18,11 @@ from api.models import User, Organization, CompanyUser, CampaignDetails, Company
 from .sto_model import get_optimal_send_time
 from .tasks import send_scheduled_email
 from .LLM_template_generator import TemplateGenerator
-
+from django.http import JsonResponse, HttpResponseRedirect
+from django.utils.timezone import now
+from .models import EmailLog
+import logging
+logger = logging.getLogger(__name__)
 template_generator = TemplateGenerator()
 
 @api_view(['GET'])
@@ -120,11 +124,10 @@ def sto_view(request):
                 return JsonResponse({"error": "No users found for this organization"}, status=400)
 
             # Convert schedule time from IST to UTC
-            utc_send_time = convert_ist_to_utc(schedule_date, schedule_time)
+            utc_send_time = convert_ist_to_utc("2025-03-13","12:54")
 
             # Loop through each user and schedule the email at the optimal time
             for user in users:
-                optimal_time = "2025-03-12 00:26:00"
 
                 # # Fetch engagement data
                 # engagement = UserEngagement.objects.filter(user_id=user.user_id).first()
@@ -132,7 +135,7 @@ def sto_view(request):
                 #     continue  # Skip users with no engagement data
 
                 user_email = user.email
-
+                print(utc_send_time)
                 # Schedule email via Celery
                 send_scheduled_email.apply_async(
                     args=[organization_id, user_email, subject, message],
@@ -400,3 +403,29 @@ def generate_template(request):
 
     
     
+from django.http import JsonResponse, HttpResponseRedirect
+from django.utils.timezone import now
+from .models import EmailLog
+import logging
+
+logger = logging.getLogger(__name__)
+
+def track_email_click(request):
+    user_email = request.GET.get("email")
+    organization_id = request.GET.get("organization")
+    redirect_url = "https://google.com"  # Redirect to your content page
+
+    if user_email and organization_id:
+        try:
+            # Find and update email log to mark as clicked
+            email_log = EmailLog.objects.filter(organization_id=organization_id, user_email=user_email).first()
+            if email_log and not email_log.clicked_at:
+                email_log.clicked_at = now()
+                email_log.status = "Clicked"
+                email_log.save()
+                logger.info(f"Email {organization_id} clicked by {user_email}")
+
+        except Exception as e:
+            logger.error(f"Error tracking email click: {str(e)}")
+
+    return HttpResponseRedirect(redirect_url)  # Redirect user to content

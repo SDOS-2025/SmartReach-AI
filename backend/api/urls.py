@@ -9,7 +9,8 @@ from .views import (
     populate_users,
     signup_individuals,
     signup_business,
-    generate_template
+    generate_template,
+    track_email_click
 )
 
 urlpatterns = [
@@ -22,6 +23,7 @@ urlpatterns = [
     path('db-test/', populate_users),
     path('signup-individuals', signup_individuals),
     path('signup-business', signup_business),
-    path('generate-template', generate_template)
+    path('generate-template', generate_template),
+    path('track-click/', track_email_click, name='track-email-click')
 
 ]

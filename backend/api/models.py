@@ -1,6 +1,8 @@
 from django.db import models
 from django.contrib.auth.models import AbstractBaseUser, BaseUserManager
 
+from django.db import models
+from django.utils.timezone import now
 class UserManager(BaseUserManager):
     def create_user(self, email, username, password=None):
         if not email:
@@ -119,3 +121,20 @@ class CampaignStatistics(models.Model):
 
     def __str__(self):
         return self.campaign_id
+    
+
+
+
+
+class EmailLog(models.Model):
+    organization_id = models.IntegerField()
+    user_email = models.EmailField()
+    subject = models.CharField(max_length=255)
+    sent_at = models.DateTimeField(default=now)
+    status = models.CharField(max_length=255)  # Sent, Failed, Clicked
+    clicked_at = models.DateTimeField(null=True, blank=True)
+    class Meta:
+        db_table = 'email_log'
+        app_label = 'api'
+    def __str__(self):
+        return f"{self.user_email} - {self.subject} - {self.status}"
