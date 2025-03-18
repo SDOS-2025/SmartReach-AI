@@ -40,7 +40,7 @@ function EmailPage() {
   const renderStep1 = () => (
     <div className="flex-[6] overflow-y-auto h-full px-10 text-lg">
       <div className="mb-4">
-        <Label htmlFor="category" className="text-lg">Category & Subcategory</Label>
+        <Label htmlFor="category" className="text-lg">Category & Subcategory <span className="text-red-500">*</span></Label>
         <Select name="category" value={formData.category} onValueChange={handleSelectChange('category')}>
           <SelectTrigger className="w-full h-14 mt-2 bg-gray-100 p-2 border border-gray-300 rounded-md">
             <SelectValue placeholder="Choose" />
@@ -55,9 +55,12 @@ function EmailPage() {
             <SelectItem value="events">Events</SelectItem>
           </SelectContent>
         </Select>
+        {/* {!formData.category && (
+          <p className="text-red-500 text-sm mt-1">This field is required</p>
+        )} */}
       </div>
       <div className="mb-4">
-        <Label htmlFor="tone" className="text-lg">Tone</Label>
+        <Label htmlFor="tone" className="text-lg">Tone <span className="text-red-500">*</span></Label>
         <Select name="tone" value={formData.tone} onValueChange={handleSelectChange('tone')}>
           <SelectTrigger className="w-full h-14 mt-2 bg-gray-100 p-2 border border-gray-300 rounded-md">
             <SelectValue placeholder="Choose" />
@@ -74,7 +77,7 @@ function EmailPage() {
         </Select>
       </div>
       <div className="mb-4">
-        <Label htmlFor="contentType" className="text-lg">Content Type</Label>
+        <Label htmlFor="contentType" className="text-lg">Content Type <span className="text-red-500">*</span></Label>
         <Select name="contentType" value={formData.contentType} onValueChange={handleSelectChange('contentType')}>
           <SelectTrigger className="w-full h-14 mt-2 bg-gray-100 p-2 border border-gray-300 rounded-md">
             <SelectValue placeholder="Choose" />
@@ -90,8 +93,8 @@ function EmailPage() {
         </Select>
       </div>
       <div className="mb-4">
-        <Label htmlFor="companyDescription" className="text-lg">Company Description (up to 100 words)</Label>
-        <Textarea
+        <Label htmlFor="companyDescription" className="text-lg">Company Description (up to 100 words) <span className="text-red-500">*</span></Label>
+        <Textarea 
           name="companyDescription"
           id="companyDescription"
           placeholder="A short introduction about the brand"
@@ -102,7 +105,7 @@ function EmailPage() {
         />
       </div>
       <div className="mb-4">
-        <Label htmlFor="emailPurpose" className="text-lg">Email Purpose (up to 100 words)</Label>
+        <Label htmlFor="emailPurpose" className="text-lg">Email Purpose (up to 100 words) <span className="text-red-500">*</span></Label>
         <Textarea
           name="emailPurpose"
           id="emailPurpose"
@@ -114,7 +117,7 @@ function EmailPage() {
         />
       </div>
       <div className="mb-4">
-        <Label htmlFor="audienceType" className="text-lg">Audience Type</Label>
+        <Label htmlFor="audienceType" className="text-lg">Audience Type <span className="text-red-500">*</span></Label>
         <Select name="audienceType" value={formData.audienceType} onValueChange={handleSelectChange('audienceType')}>
           <SelectTrigger className="w-full h-14 mt-2 bg-gray-100 p-2 border border-gray-300 rounded-md">
             <SelectValue placeholder="Choose" />
@@ -126,7 +129,7 @@ function EmailPage() {
         </Select>
       </div>
       <div className="mb-4">
-        <Label htmlFor="preferredLength" className="text-lg">Preferred Length</Label>
+        <Label htmlFor="preferredLength" className="text-lg">Preferred Length <span className="text-red-500">*</span></Label>
         <Select name="preferredLength" value={formData.preferredLength} onValueChange={handleSelectChange('preferredLength')}>
           <SelectTrigger className="w-full h-14 mt-2 bg-gray-100 p-2 border border-gray-300 rounded-md">
             <SelectValue placeholder="Choose" />
@@ -139,7 +142,7 @@ function EmailPage() {
         </Select>
       </div>
       <div className="mb-4">
-        <Label htmlFor="cta" className="text-lg">Call-to-Action (CTA)</Label>
+        <Label htmlFor="cta" className="text-lg">Call-to-Action (CTA) <span className="text-red-500">*</span></Label>
         <Select name="cta" value={formData.cta} onValueChange={handleSelectChange('cta')}>
           <SelectTrigger className="w-full h-14 mt-2 bg-gray-100 p-2 border border-gray-300 rounded-md">
             <SelectValue placeholder="Choose" />
@@ -154,17 +157,25 @@ function EmailPage() {
           </SelectContent>
         </Select>
       </div>
-      <div className="mb-4">
-        <Label htmlFor="customCta" className="text-lg">Custom CTA (if "Other" selected)</Label>
-        <Textarea
-          name="customCta"
-          id="customCta"
-          placeholder="Enter custom call-to-action"
-          className="w-full h-20 mt-2 p-2 border border-gray-300 rounded-md bg-gray-100 resize-none"
-          value={formData.customCta}
-          onChange={handleTextChange('customCta')}
-        />
-      </div>
+
+      {formData.cta === 'other' && (
+        <div className="mb-4">
+          <Label htmlFor="customCta" className="text-lg">
+            Custom CTA <span className="text-red-500">*</span>
+          </Label>
+          <Textarea
+          
+            name="customCta"
+            id="customCta"
+            placeholder="Enter custom call-to-action"
+            className="w-full h-20 mt-2 p-2 border border-gray-300 rounded-md bg-gray-100 resize-none"
+            value={formData.customCta}
+            onChange={handleTextChange('customCta')}
+          />
+          {/* {!formData.customCta && <p className="text-red-500 text-sm mt-1">This field is required when "Other" is selected</p>} */}
+        </div>
+      )}
+
       <div className="mb-4">
         <Label htmlFor="emailStructure" className="text-lg">Email Structure</Label>
         <Select name="emailStructure" value={formData.emailStructure} onValueChange={handleSelectChange('emailStructure')}>
@@ -366,6 +377,7 @@ function EmailPage() {
 
   // Handle "Generate Template" button click
   const generate_template = async () => {
+    
     try {
       const response = await fetch('http://localhost:8000/api/generate-template', {
         method: 'POST',
@@ -376,16 +388,13 @@ function EmailPage() {
       });
 
       const data = await response.json();
-      if (response.ok) {
-        // Display the generated template in the textarea
-        document.querySelector('textarea[name="textarea"]').value = JSON.stringify(data, null, 2);
-      } else {
-        console.error('Error from server:', data.error);
-        document.querySelector('textarea[name="textarea"]').value = `Error: ${data.error}`;
-      }
+    
+      document.querySelector('textarea[name="template_subject"]').value = data.Subject
+      document.querySelector('textarea[name="template_body"]').value = data.Body
+      
     } catch (error) {
       console.error('Fetch error:', error);
-      document.querySelector('textarea[name="textarea"]').value = `Fetch Error: ${error.message}`;
+      document.querySelector('textarea[name="template_body"]').value = `Fetch Error: ${error.message}`;
     }
   };
 
@@ -459,12 +468,16 @@ function EmailPage() {
         </div>
 
         {/* Email content */}
-        <div className="bg-[#0F142E] flex items-center justify-center h-[20rem] md:h-full flex-auto p-10">
+        <div className="bg-[#0F142E] flex-col items-center justify-center h-[20rem] md:h-full flex-auto p-10">
           <Textarea
-            className="text-lg w-full h-full p-10 bg-white rounded-lg resize-none"
-            name="textarea"
-            id="textarea"
-            placeholder="Type here..."
+              className="text-lg w-full h-[8%] p-5 pl-10 bg-white rounded-t-lg resize-none"
+              name="template_subject"
+              placeholder="Subject"
+            />
+          <Textarea
+            className="text-lg w-full h-[92%] pl-10 bg-white rounded-b-lg resize-none"
+            name="template_body"
+            placeholder="Body"
           />
         </div>
       </div>

@@ -1,3 +1,5 @@
+backend/.sdos_env
+backend/backend/__pycache__/*
+backend/api/__pycache__/*
+backend/api/migrations/__pycache__/*
 backend/backend/oauth_settings.py
-database_test/database.ini
-backend.sdos_env

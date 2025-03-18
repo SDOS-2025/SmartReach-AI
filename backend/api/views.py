@@ -8,6 +8,7 @@ from django.views.decorators.csrf import csrf_exempt
 from django.contrib import messages
 from django.utils.timezone import make_aware
 from rest_framework.response import Response
+from rest_framework import status
 from rest_framework.decorators import api_view
 from django.contrib.auth.decorators import login_required
 from social_django.utils import load_strategy, load_backend
@@ -103,6 +104,9 @@ def sto_view(request):
             organization_id = data.get("organizationId")
             schedule_date = data.get("scheduleDate")  # Format: "YYYY-MM-DD"
             schedule_time = data.get("scheduleTime")  # Format: "HH:MM"
+
+            print(schedule_date, schedule_time)
+
             campaign_id = data.get("campaignId")
             message = CampaignDetails.objects.get(campaign_id=campaign_id).campaign_mail_body
             sto_option = data.get("stoOption")
@@ -367,6 +371,8 @@ def signup_business(request):
 
 @api_view(['POST'])
 def generate_template(request):
+    print("hi")
+    print(request.data)
     category = request.data.get('category')
     tone = request.data.get('tone')
     content_type = request.data.get('contentType')
@@ -375,7 +381,7 @@ def generate_template(request):
     audience_type = request.data.get('audienceType')
     preferred_length = request.data.get('preferredLength')
     cta = request.data.get('cta')
-    custom_cta = request.data.get('customCta')
+    # custom_cta = request.data.get('customCta')
     email_structure = request.data.get('emailStructure')
 
     response_data = {
@@ -392,14 +398,21 @@ def generate_template(request):
 
     for field, value in response_data.items():
         if not value:
-            return Response({'error': f'Missing required field: {field}'})
+            return Response(
+                    {'Subject':'Complete missing fields', 'Body': f'Missing required field: {field}'},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
 
     template = template_generator.generate(response_data)
+    # print(f"template: {template}")
     request.session['generated_template'] = template
     if not template:
-        return Response({'error': 'Error generating template'})
+        return Response(
+            {'Subject':'Internal Server Error', 'Body': 'Error generating template'},
+            status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
     
-    return Response(template)
+    return Response(template, status=status.HTTP_201_CREATED)
 
     
     
