@@ -403,7 +403,7 @@ def generate_template(request):
                     status=status.HTTP_400_BAD_REQUEST
                 )
 
-    template = template_generator.generate(response_data)
+    template = template_generator.generate(**response_data)
     # print(f"template: {template}")
     request.session['generated_template'] = template
     if not template:

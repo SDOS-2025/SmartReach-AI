@@ -8,3 +8,5 @@ pytz
 pandas
 numpy
 scikit-learn
+openai
+requests
