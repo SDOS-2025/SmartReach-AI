@@ -23,7 +23,7 @@ const LoginCard = ({ view, setView }: LoginCardProps) => {
   const [emailUseTLS, setEmailUseTLS] = useState(true);
 
   const handleGoogleLogin = () => {
-    window.location.href = 'http://localhost:8000/social-auth/login/google-oauth2/';
+    window.location.href = '/api/social-auth/login/google-oauth2/';
   };
 
   const handleLogin = async () => {
@@ -34,7 +34,7 @@ const LoginCard = ({ view, setView }: LoginCardProps) => {
     };
   
     try {
-      const response = await fetch('http://localhost:8000/api/user-login', {
+      const response = await fetch('/api/user-login', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -74,7 +74,7 @@ const LoginCard = ({ view, setView }: LoginCardProps) => {
     };
 
     try {
-      const response = await fetch('http://localhost:8000/api/signup-business', {
+      const response = await fetch('/api/signup-business', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(requestBody),
@@ -106,7 +106,7 @@ const handleSignupIndividuals = async () => {
   const requestBody = { username, email, password };
 
   try {
-    const response = await fetch('http://localhost:8000/api/signup-individuals', {
+    const response = await fetch('/api/signup-individuals', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(requestBody),
@@ -304,10 +304,10 @@ const handleSignupIndividuals = async () => {
           onChange={(e) => setEmailPort(e.target.value)}
         />
       </Label>
-      <Label className="block mt-4">
+      <Label className="flex justify-start mt-4">
         <span className="text-lg">Email Use TLS</span>
         <Input
-          className="h-14 mt-2"
+          className="h-5 ml-3 w-5"
           type="checkbox"
           checked={emailUseTLS}
           onChange={(e) => setEmailUseTLS(e.target.checked)}
@@ -330,7 +330,7 @@ const handleSignupIndividuals = async () => {
   );
 
   return (
-    <div className="p-4 md:p-6 my-auto w-3/5 flex flex-col space-y-6">
+    <div className="px-12 py-4 max-w- md:p-4 md:p-6 my-auto flex flex-col space-y-6">
       {view === 'login' && renderLoginForm()}
       {view === 'signup-individual' && renderSignupIndividualForm()}
       {view === 'signup-business' && renderSignupBusinessForm()}

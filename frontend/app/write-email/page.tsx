@@ -14,7 +14,7 @@ function EmailPage() {
   const [currentStep, setCurrentStep] = useState(1); // Track the current step
 
   // State for Step 1 form fields
-  const [formData, setFormData] = useState({
+  const [forlgata, setForlgata] = useState({
     category: '',
     tone: '',
     contentType: '',
@@ -29,12 +29,12 @@ function EmailPage() {
 
   // Handle changes for Select components
   const handleSelectChange = (field: string) => (value: string) => {
-    setFormData((prev) => ({ ...prev, [field]: value }));
+    setForlgata((prev) => ({ ...prev, [field]: value }));
   };
 
   // Handle changes for Textarea components
   const handleTextChange = (field: string) => (e: React.ChangeEvent<HTMLTextAreaElement>) => {
-    setFormData((prev) => ({ ...prev, [field]: e.target.value }));
+    setForlgata((prev) => ({ ...prev, [field]: e.target.value }));
   };
 
   // First set of questions (Step 1)
@@ -42,8 +42,8 @@ function EmailPage() {
     <div className="flex-[6] overflow-y-auto h-full px-10 text-lg">
       <div className="mb-4">
         <Label htmlFor="category" className="text-lg">Category & Subcategory <span className="text-red-500">*</span></Label>
-        <Select name="category" value={formData.category} onValueChange={handleSelectChange('category')}>
-          <SelectTrigger className="w-full h-14 mt-2 bg-gray-100 p-2 border border-gray-300 rounded-md">
+        <Select name="category" value={forlgata.category} onValueChange={handleSelectChange('category')}>
+          <SelectTrigger className="w-full h-14 mt-2 bg-gray-100 p-2 border border-gray-300 rounded-lg">
             <SelectValue placeholder="Choose" />
           </SelectTrigger>
           <SelectContent>
@@ -56,14 +56,14 @@ function EmailPage() {
             <SelectItem value="events">Events</SelectItem>
           </SelectContent>
         </Select>
-        {/* {!formData.category && (
+        {/* {!forlgata.category && (
           <p className="text-red-500 text-sm mt-1">This field is required</p>
         )} */}
       </div>
       <div className="mb-4">
         <Label htmlFor="tone" className="text-lg">Tone <span className="text-red-500">*</span></Label>
-        <Select name="tone" value={formData.tone} onValueChange={handleSelectChange('tone')}>
-          <SelectTrigger className="w-full h-14 mt-2 bg-gray-100 p-2 border border-gray-300 rounded-md">
+        <Select name="tone" value={forlgata.tone} onValueChange={handleSelectChange('tone')}>
+          <SelectTrigger className="w-full h-14 mt-2 bg-gray-100 p-2 border border-gray-300 rounded-lg">
             <SelectValue placeholder="Choose" />
           </SelectTrigger>
           <SelectContent>
@@ -79,8 +79,8 @@ function EmailPage() {
       </div>
       <div className="mb-4">
         <Label htmlFor="contentType" className="text-lg">Content Type <span className="text-red-500">*</span></Label>
-        <Select name="contentType" value={formData.contentType} onValueChange={handleSelectChange('contentType')}>
-          <SelectTrigger className="w-full h-14 mt-2 bg-gray-100 p-2 border border-gray-300 rounded-md">
+        <Select name="contentType" value={forlgata.contentType} onValueChange={handleSelectChange('contentType')}>
+          <SelectTrigger className="w-full h-14 mt-2 bg-gray-100 p-2 border border-gray-300 rounded-lg">
             <SelectValue placeholder="Choose" />
           </SelectTrigger>
           <SelectContent>
@@ -99,9 +99,9 @@ function EmailPage() {
           name="companyDescription"
           id="companyDescription"
           placeholder="A short introduction about the brand"
-          className="w-full h-20 mt-2 p-2 border border-gray-300 rounded-md bg-gray-100 resize-none"
+          className="w-full h-20 mt-2 p-2 border border-gray-300 rounded-lg bg-gray-100 resize-none"
           maxLength={100}
-          value={formData.companyDescription}
+          value={forlgata.companyDescription}
           onChange={handleTextChange('companyDescription')}
         />
       </div>
@@ -111,16 +111,16 @@ function EmailPage() {
           name="emailPurpose"
           id="emailPurpose"
           placeholder="What is the goal of the email? (e.g., Announce a new product, Offer a discount)"
-          className="w-full h-20 mt-2 p-2 border border-gray-300 rounded-md bg-gray-100 resize-none"
+          className="w-full h-20 mt-2 p-2 border border-gray-300 rounded-lg bg-gray-100 resize-none"
           maxLength={100}
-          value={formData.emailPurpose}
+          value={forlgata.emailPurpose}
           onChange={handleTextChange('emailPurpose')}
         />
       </div>
       <div className="mb-4">
         <Label htmlFor="audienceType" className="text-lg">Audience Type <span className="text-red-500">*</span></Label>
-        <Select name="audienceType" value={formData.audienceType} onValueChange={handleSelectChange('audienceType')}>
-          <SelectTrigger className="w-full h-14 mt-2 bg-gray-100 p-2 border border-gray-300 rounded-md">
+        <Select name="audienceType" value={forlgata.audienceType} onValueChange={handleSelectChange('audienceType')}>
+          <SelectTrigger className="w-full h-14 mt-2 bg-gray-100 p-2 border border-gray-300 rounded-lg">
             <SelectValue placeholder="Choose" />
           </SelectTrigger>
           <SelectContent>
@@ -131,8 +131,8 @@ function EmailPage() {
       </div>
       <div className="mb-4">
         <Label htmlFor="preferredLength" className="text-lg">Preferred Length <span className="text-red-500">*</span></Label>
-        <Select name="preferredLength" value={formData.preferredLength} onValueChange={handleSelectChange('preferredLength')}>
-          <SelectTrigger className="w-full h-14 mt-2 bg-gray-100 p-2 border border-gray-300 rounded-md">
+        <Select name="preferredLength" value={forlgata.preferredLength} onValueChange={handleSelectChange('preferredLength')}>
+          <SelectTrigger className="w-full h-14 mt-2 bg-gray-100 p-2 border border-gray-300 rounded-lg">
             <SelectValue placeholder="Choose" />
           </SelectTrigger>
           <SelectContent>
@@ -144,8 +144,8 @@ function EmailPage() {
       </div>
       <div className="mb-4">
         <Label htmlFor="cta" className="text-lg">Call-to-Action (CTA) <span className="text-red-500">*</span></Label>
-        <Select name="cta" value={formData.cta} onValueChange={handleSelectChange('cta')}>
-          <SelectTrigger className="w-full h-14 mt-2 bg-gray-100 p-2 border border-gray-300 rounded-md">
+        <Select name="cta" value={forlgata.cta} onValueChange={handleSelectChange('cta')}>
+          <SelectTrigger className="w-full h-14 mt-2 bg-gray-100 p-2 border border-gray-300 rounded-lg">
             <SelectValue placeholder="Choose" />
           </SelectTrigger>
           <SelectContent>
@@ -159,7 +159,7 @@ function EmailPage() {
         </Select>
       </div>
 
-      {formData.cta === 'other' && (
+      {forlgata.cta === 'other' && (
         <div className="mb-4">
           <Label htmlFor="customCta" className="text-lg">
             Custom CTA <span className="text-red-500">*</span>
@@ -169,18 +169,18 @@ function EmailPage() {
             name="customCta"
             id="customCta"
             placeholder="Enter custom call-to-action"
-            className="w-full h-20 mt-2 p-2 border border-gray-300 rounded-md bg-gray-100 resize-none"
-            value={formData.customCta}
+            className="w-full h-20 mt-2 p-2 border border-gray-300 rounded-lg bg-gray-100 resize-none"
+            value={forlgata.customCta}
             onChange={handleTextChange('customCta')}
           />
-          {/* {!formData.customCta && <p className="text-red-500 text-sm mt-1">This field is required when "Other" is selected</p>} */}
+          {/* {!forlgata.customCta && <p className="text-red-500 text-sm mt-1">This field is required when "Other" is selected</p>} */}
         </div>
       )}
 
       <div className="mb-4">
         <Label htmlFor="emailStructure" className="text-lg">Email Structure</Label>
-        <Select name="emailStructure" value={formData.emailStructure} onValueChange={handleSelectChange('emailStructure')}>
-          <SelectTrigger className="w-full h-14 mt-2 bg-gray-100 p-2 border border-gray-300 rounded-md">
+        <Select name="emailStructure" value={forlgata.emailStructure} onValueChange={handleSelectChange('emailStructure')}>
+          <SelectTrigger className="w-full h-14 mt-2 bg-gray-100 p-2 border border-gray-300 rounded-lg">
             <SelectValue placeholder="Choose" />
           </SelectTrigger>
           <SelectContent>
@@ -200,7 +200,7 @@ function EmailPage() {
       <div className="mb-4">
         <Label htmlFor="callToAction" className="text-lg">What is your call to action?</Label>
         <Select name="callToAction">
-          <SelectTrigger className="w-full h-14 mt-2 bg-gray-100 p-2 border border-gray-300 rounded-md">
+          <SelectTrigger className="w-full h-14 mt-2 bg-gray-100 p-2 border border-gray-300 rounded-lg">
             <SelectValue placeholder="Choose" />
           </SelectTrigger>
           <SelectContent>
@@ -215,7 +215,7 @@ function EmailPage() {
       <div className="mb-4">
         <Label htmlFor="urgency" className="text-lg">How urgent is this email?</Label>
         <Select name="urgency">
-          <SelectTrigger className="w-full h-14 mt-2 bg-gray-100 p-2 border border-gray-300 rounded-md">
+          <SelectTrigger className="w-full h-14 mt-2 bg-gray-100 p-2 border border-gray-300 rounded-lg">
             <SelectValue placeholder="Choose" />
           </SelectTrigger>
           <SelectContent>
@@ -233,7 +233,7 @@ function EmailPage() {
           name="additionalInfo"
           id="additionalInfo"
           placeholder="Enter Text"
-          className="w-full h-20 mt-2 p-2 resize-none border border-gray-300 rounded-md bg-gray-100"
+          className="w-full h-20 mt-2 p-2 resize-none border border-gray-300 rounded-lg bg-gray-100"
         />
       </div>
     </div>
@@ -249,20 +249,20 @@ function EmailPage() {
             type="date"
             name="scheduleDate"
             id="scheduleDate"
-            className="w-1/2 h-14 p-2 border border-gray-300 rounded-md bg-gray-100"
+            className="w-1/2 h-14 p-2 border border-gray-300 rounded-lg bg-gray-100"
           />
           <Input
             type="time"
             name="scheduleTime"
             id="scheduleTime"
-            className="w-1/2 h-14 p-2 border border-gray-300 rounded-md bg-gray-100"
+            className="w-1/2 h-14 p-2 border border-gray-300 rounded-lg bg-gray-100"
           />
         </div>
       </div>
       <div className="mb-6">
         <Label htmlFor="goal" className="text-lg">What is your primary goal for send-time optimization?</Label>
         <Select name="goal">
-          <SelectTrigger className="w-full h-14 mt-2 bg-gray-100 p-2 border border-gray-300 rounded-md">
+          <SelectTrigger className="w-full h-14 mt-2 bg-gray-100 p-2 border border-gray-300 rounded-lg">
             <SelectValue placeholder="Select a goal" />
           </SelectTrigger>
           <SelectContent>
@@ -296,7 +296,7 @@ function EmailPage() {
             type="text"
             name="timezoneOther"
             placeholder="Enter custom timezone (e.g., Australia/Sydney)"
-            className="w-full h-12 mt-2 p-2 border border-gray-300 rounded-md bg-gray-100"
+            className="w-full h-12 mt-2 p-2 border border-gray-300 rounded-lg bg-gray-100"
           />
         </div>
       </div>
@@ -306,7 +306,7 @@ function EmailPage() {
           name="behavior"
           id="behavior"
           placeholder="e.g., weekday mornings, weekend evenings"
-          className="w-full h-20 mt-2 p-2 border border-gray-300 resize-none rounded-md bg-gray-100"
+          className="w-full h-20 mt-2 p-2 border border-gray-300 resize-none rounded-lg bg-gray-100"
         />
       </div>
       <div className="mb-6">
@@ -316,14 +316,14 @@ function EmailPage() {
           name="dataUpload"
           id="dataUpload"
           accept=".csv,.pdf,.txt"
-          className="w-full h-14 mt-2 p-2 border border-gray-300 rounded-md bg-gray-100"
+          className="w-full h-14 mt-2 p-2 border border-gray-300 rounded-lg bg-gray-100"
         />
         <p className="text-sm text-gray-500 mt-1">Accepted formats: CSV, PDF, TXT</p>
       </div>
       <div className="mb-6">
         <Label htmlFor="frequency" className="text-lg">How often will this campaign run?</Label>
         <Select name="frequency">
-          <SelectTrigger className="w-full h-14 mt-2 bg-gray-100 p-2 border border-gray-300 rounded-md">
+          <SelectTrigger className="w-full h-14 mt-2 bg-gray-100 p-2 border border-gray-300 rounded-lg">
             <SelectValue placeholder="Select frequency" />
           </SelectTrigger>
           <SelectContent>
@@ -338,7 +338,7 @@ function EmailPage() {
           type="text"
           name="frequencyCustom"
           placeholder="e.g., Every 3 days"
-          className="w-full h-12 mt-2 p-2 border border-gray-300 rounded-md bg-gray-100"
+          className="w-full h-12 mt-2 p-2 border border-gray-300 rounded-lg bg-gray-100"
         />
       </div>
       <div className="mb-6">
@@ -348,7 +348,7 @@ function EmailPage() {
           name="industry"
           id="industry"
           placeholder="e.g., e-commerce, B2B, healthcare"
-          className="w-full h-14 mt-2 p-2 border border-gray-300 rounded-md bg-gray-100"
+          className="w-full h-14 mt-2 p-2 border border-gray-300 rounded-lg bg-gray-100"
         />
       </div>
       <div className="mb-6">
@@ -383,12 +383,12 @@ function EmailPage() {
   const generate_template = async () => {
 
     try {
-      const response = await fetch('http://localhost:8000/api/generate-template', {
+      const response = await fetch('/api/generate-template', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify(formData),
+        body: JSON.stringify(forlgata),
       });
 
       const data = await response.json();
@@ -408,9 +408,9 @@ function EmailPage() {
       <div className="h-20 flex-none">
         <NavigationMenu />
       </div>
-      <div className="flex flex-auto flex-col md:flex-row">
+      <div className="flex flex-auto flex-col lg:flex-row">
         {/* Sidebar */}
-        <div className="w-screen md:w-[6rem] bg-[#0F142E] flex md:flex-col justify-center items-center py-5 space-x-6 md:space-y-12 md:space-x-0">
+        <div className="w-screen lg:w-[6rem] bg-[#0F142E] flex lg:flex-col justify-center items-center py-5 space-x-6 lg:space-y-12 lg:space-x-0">
           <Button
             className={`w-16 h-16 rounded-full hover:bg-[#A3A4B3] flex items-center justify-center p-0 ${
               currentStep === 1 ? 'bg-[#DCDDEB] text-black' : 'bg-[#494965] text-black'
@@ -438,7 +438,7 @@ function EmailPage() {
         </div>
 
         {/* Main Section */}
-        <div className="h-[calc(100vh-5rem)] w-screen md:w-6/12 px-10 py-10 flex flex-row">
+        <div className="h-[calc(100vh-5rem)] w-screen lg:w-6/12 p-4 lg:p-10 flex flex-row">
           {/* Main Questions Area */}
           <div className="w-full h-full flex flex-col">
             <div className="flex-[1] flex flex-col justify-center items-center text-xl">
@@ -447,25 +447,25 @@ function EmailPage() {
             {currentStep === 1 && renderStep1()}
             {currentStep === 2 && renderStep2()}
             {currentStep === 3 && renderStep3()}
-            <div className="flex-[1] flex justify-center items-center">
+            <div className="flex justify-center mt-6 overflow-x-scroll">
               <Button
-                className="text-lg bg-[#0F142E] text-white py-8 px-10 mr-2 rounded-full hover:bg-[#434C7B]"
+                className="text-lg lg:text-lg bg-[#0F142E] text-white p-4 md:p-6 mr-1 lg:mr-2 xl:py-[1.5rem] xl:px-[1rem] rounded-full hover:bg-[#434C7B]"
                 onClick={() => handleNextStep(-1)}
               >
                 {FaArrowLeft({})}
-                <span className="ml-2">Back</span>
+                <span className="hidden xl:inline xl:ml-2">Back</span>
               </Button>
               <Button
-                className="text-lg bg-[#0F142E] text-white py-8 px-10 mr-2 rounded-full hover:bg-[#434C7B]"
+                className="text-lg lg:text-lg bg-[#0F142E] text-white p-4 md:p-6 mr-1  lg:mr-2 xl:py-[1.5rem] xl:px-[1rem] rounded-full hover:bg-[#434C7B]"
                 onClick={generate_template}
               >
                 <span className="ml-2">Generate Template</span>
               </Button>
               <Button
-                className="text-lg bg-[#0F142E] text-white py-8 px-10 rounded-full hover:bg-[#434C7B]"
+                className="text-lg lg:text-lg bg-[#0F142E] text-white p-4 md:p-6 xl:py-[1.5rem] xl:px-[1rem] rounded-full hover:bg-[#434C7B]"
                 onClick={() => handleNextStep(1)}
               >
-                <span className="mr-2">Choose this template</span>
+                <span className="hidden xl:inline xl:mr-2">Choose this template</span>
                 {FaArrowRight({})}
               </Button>
             </div>
@@ -473,7 +473,7 @@ function EmailPage() {
         </div>
 
         {/* Email content */}
-        <div className="bg-[#0F142E] flex-col items-center justify-center h-[20rem] md:h-full flex-auto p-10">
+        <div className="bg-[#0F142E] flex-col items-center justify-center h-[30rem] lg:h-full flex-auto p-10">
           <Textarea
               className="text-lg w-full h-[8%] p-5 pl-10 bg-white rounded-t-lg resize-none"
               name="template_subject"
@@ -481,7 +481,7 @@ function EmailPage() {
               ref={subjectRef}
             />
           <Textarea
-            className="text-lg w-full h-[92%] pl-10 bg-white rounded-b-lg resize-none"
+            className="text-lg w-full h-[82%] pl-10 bg-white rounded-b-lg resize-none"
             name="template_body"
             placeholder="Body"
             ref={bodyRef}
