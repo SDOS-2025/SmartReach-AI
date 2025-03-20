@@ -1,7 +1,6 @@
-gemma_key = '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'
-oopspam_key = 'e7d43f8a9fmsh302a0fa519d08fcp1b6e89jsneb7ea2ce3bfd'
 from openai import OpenAI
 import requests
+from .oauth_settings import gemma_key, oopspam_key
 
 class TemplateGenerator:
     def __init__(self,
@@ -96,23 +95,23 @@ class TemplateGenerator:
         )
 
         completion = client.chat.completions.create(
-        extra_headers={
-            "HTTP-Referer": "<YOUR_SITE_URL>", # Optional. Site URL for rankings on openrouter.ai.
-            "X-Title": "<YOUR_SITE_NAME>", # Optional. Site title for rankings on openrouter.ai.
-        },
-        extra_body={},
-        model="google/gemma-3-27b-it:free",
-        messages=[
-            {
-            "role": "user",
-            "content": [
+            extra_headers={
+                "HTTP-Referer": "<YOUR_SITE_URL>", # Optional. Site URL for rankings on openrouter.ai.
+                "X-Title": "<YOUR_SITE_NAME>", # Optional. Site title for rankings on openrouter.ai.
+            },
+            extra_body={},
+            model="google/gemma-3-27b-it:free",
+            messages=[
                 {
-                "type": "text",
-                "text": prompt,
+                "role": "user",
+                "content": [
+                    {
+                    "type": "text",
+                    "text": prompt,
+                    }
+                ]
                 }
             ]
-            }
-        ]
         )
         return completion.choices[0].message.content
     
@@ -181,7 +180,6 @@ class TemplateGenerator:
         prompt = self.generate_marketing_email_prompt()
         email_content = self.generate_email_content(prompt)
         for attempt in range(1, self.max_attempts + 1):
-            print(email_content)
             spam_score = self.get_spam_score(email_content)
             if spam_score is None:
                 print("Failed to get spam score")

@@ -24,7 +24,6 @@ from django.utils.timezone import now
 from .models import EmailLog
 import logging
 logger = logging.getLogger(__name__)
-template_generator = TemplateGenerator()
 
 @api_view(['GET'])
 def hello_world(request):
@@ -385,26 +384,18 @@ def generate_template(request):
     email_structure = request.data.get('emailStructure')
 
     response_data = {
-        'category': category,
+        'category_subcategory': category,
         'tone': tone,
-        'contentType': content_type,
-        'companyDescription': company_description,
-        'emailPurpose': email_purpose,
-        'audienceType': audience_type,
-        'preferredLength': preferred_length,
+        'content_type': content_type,
+        'company_description': company_description,
+        'email_purpose': email_purpose,
+        'audience_type': audience_type,
+        'preferred_length': preferred_length,
         'cta': cta,
-        'emailStructure': email_structure
+        'email_structure': email_structure
     }
-
-    for field, value in response_data.items():
-        if not value:
-            return Response(
-                    {'Subject':'Complete missing fields', 'Body': f'Missing required field: {field}'},
-                    status=status.HTTP_400_BAD_REQUEST
-                )
-
-    template = template_generator.generate(**response_data)
-    # print(f"template: {template}")
+    template_generator = TemplateGenerator(**response_data)
+    template = template_generator.generate()
     request.session['generated_template'] = template
     if not template:
         return Response(
