@@ -74,6 +74,7 @@ class TemplateGenerator:
             "- Maintain a consistent '{tone}' throughout.\n"
             "- End with a sign-off matching the tone (e.g., 'Cheers,' for Friendly, 'Best regards,' for Professional) followed by the company name.\n"
             "- Do not include placeholders, product details, or assumptions beyond the attributes provided. Work with what's provided onyl.\n\n"
+            "- Provide the subject enclosed between <SUBJECT_START> and <SUBJECT_END>, and the body enclosed between <BODY_START> and <BODY_END>."
             "Using the above, generate a finalized plain text email with subject and body."
         )
 
@@ -153,28 +154,30 @@ class TemplateGenerator:
             print(f"Exception during API call: {e}")
             return None
 
-    def parse_email_content(self,email_string):
-        # Split the string into lines
-        lines = email_string.split('\n')
+    def parse_email_content(self, email_string):
+        subject_start = "<SUBJECT_START>"
+        subject_end = "<SUBJECT_END>"
+        body_start = "<BODY_START>"
+        body_end = "<BODY_END>"
+
         subject = ""
-        body_lines = []
+        body = ""
+        # Extract Subject
+        sub_start_idx = email_string.find(subject_start)
+        sub_end_idx = email_string.find(subject_end)
         
-        # Process each line
-        for line in lines:
-            # Extract subject
-            if line.startswith("Subject:"):
-                subject = line.replace("Subject:", "").strip()
-                if "Please provide a subject line" in subject:
-                    subject = "20% Off Tech This Weekend!"  # Default subject if placeholder present
-            else:
-                body_lines.append(line.strip())
-            
+        if sub_start_idx != -1 and sub_end_idx != -1:
+            subject = email_string[sub_start_idx + len(subject_start):sub_end_idx].strip()
+
+        # Extract Body
+        body_start_idx = email_string.find(body_start)
+        body_end_idx = email_string.find(body_end)
         
-        # Join body and salutation lines into single strings
-        body = "\n\n".join(body_lines)
-        
-        # Return dictionary
-        return {"Subject": subject, "Body": body}
+        if body_start_idx != -1 and body_end_idx != -1:
+            body = email_string[body_start_idx + len(body_start):body_end_idx].strip()
+
+        result = {"Subject":subject, "Body":body}
+        return result
     
     def generate(self):
         prompt = self.generate_marketing_email_prompt()
