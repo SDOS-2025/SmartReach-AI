@@ -473,15 +473,15 @@ function EmailPage() {
         </div>
 
         {/* Email content */}
-        <div className="bg-[#0F142E] flex-col items-center justify-center h-[30rem] lg:h-full flex-auto p-10">
+        <div className="bg-[#0F142E] flex flex-col items-center justify-center h-[30rem] lg:h-full flex-auto p-10">
           <Textarea
-              className="text-lg w-full h-[8%] p-5 pl-10 bg-white rounded-t-lg resize-none"
+              className="text-lg overflow-y-hidden w-full h-[8%] p-5 pl-10 bg-white rounded-t-lg resize-none"
               name="template_subject"
               placeholder="Subject"
               ref={subjectRef}
             />
           <Textarea
-            className="text-lg w-full h-[82%] pl-10 bg-white rounded-b-lg resize-none"
+            className="text-lg w-full h-[82%] pl-10 pt-5 bg-white rounded-b-lg resize-none"
             name="template_body"
             placeholder="Body"
             ref={bodyRef}
