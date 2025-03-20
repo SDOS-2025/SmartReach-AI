@@ -8,6 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { FaArrowRight, FaArrowLeft, FaQuestion, FaDatabase, FaTelegramPlane } from 'react-icons/fa';
 import { Input } from '@/components/ui/input';
 import { Checkbox } from '@radix-ui/react-checkbox';
+import { useRef } from 'react';
 
 function EmailPage() {
   const [currentStep, setCurrentStep] = useState(1); // Track the current step
@@ -27,12 +28,12 @@ function EmailPage() {
   });
 
   // Handle changes for Select components
-  const handleSelectChange = (field) => (value) => {
+  const handleSelectChange = (field: string) => (value: string) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
   };
 
   // Handle changes for Textarea components
-  const handleTextChange = (field) => (e) => {
+  const handleTextChange = (field: string) => (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     setFormData((prev) => ({ ...prev, [field]: e.target.value }));
   };
 
@@ -375,9 +376,12 @@ function EmailPage() {
     setCurrentStep(step);
   };
 
+  const subjectRef = useRef<HTMLTextAreaElement>(null);
+  const bodyRef = useRef<HTMLTextAreaElement>(null);
+
   // Handle "Generate Template" button click
   const generate_template = async () => {
-    
+
     try {
       const response = await fetch('http://localhost:8000/api/generate-template', {
         method: 'POST',
@@ -389,12 +393,13 @@ function EmailPage() {
 
       const data = await response.json();
     
-      document.querySelector('textarea[name="template_subject"]').value = data.Subject
-      document.querySelector('textarea[name="template_body"]').value = data.Body
+      if (subjectRef.current && bodyRef.current) {
+        subjectRef.current.value = data.Subject;
+        bodyRef.current.value = data.Body;
+      }
       
     } catch (error) {
-      console.error('Fetch error:', error);
-      document.querySelector('textarea[name="template_body"]').value = `Fetch Error: ${error.message}`;
+      console.error('Error fetching email data:', error);
     }
   };
 
@@ -412,7 +417,7 @@ function EmailPage() {
             }`}
             onClick={() => goToStep(1)}
           >
-            <FaQuestion className="!w-[40%] !h-[40%]" />
+            {FaQuestion({ className: "!w-[40%] !h-[40%]" })}
           </Button>
           <Button
             className={`w-16 h-16 rounded-full hover:bg-[#A3A4B3] flex items-center justify-center p-0 ${
@@ -420,7 +425,7 @@ function EmailPage() {
             }`}
             onClick={() => goToStep(2)}
           >
-            <FaDatabase className="!w-[40%] !h-[40%]" />
+            {FaDatabase({ className: "!w-[40%] !h-[40%]" })}
           </Button>
           <Button
             className={`w-16 h-16 rounded-full hover:bg-[#A3A4B3] flex items-center justify-center p-0 ${
@@ -428,7 +433,7 @@ function EmailPage() {
             }`}
             onClick={() => goToStep(3)}
           >
-            <FaTelegramPlane className="!w-[40%] !h-[40%]" />
+            {FaTelegramPlane({className: "!w-[40%] !h-[40%]"})}
           </Button>
         </div>
 
@@ -447,7 +452,7 @@ function EmailPage() {
                 className="text-lg bg-[#0F142E] text-white py-8 px-10 mr-2 rounded-full hover:bg-[#434C7B]"
                 onClick={() => handleNextStep(-1)}
               >
-                <FaArrowLeft />
+                {FaArrowLeft({})}
                 <span className="ml-2">Back</span>
               </Button>
               <Button
@@ -461,7 +466,7 @@ function EmailPage() {
                 onClick={() => handleNextStep(1)}
               >
                 <span className="mr-2">Choose this template</span>
-                <FaArrowRight />
+                {FaArrowRight({})}
               </Button>
             </div>
           </div>
@@ -473,11 +478,13 @@ function EmailPage() {
               className="text-lg w-full h-[8%] p-5 pl-10 bg-white rounded-t-lg resize-none"
               name="template_subject"
               placeholder="Subject"
+              ref={subjectRef}
             />
           <Textarea
             className="text-lg w-full h-[92%] pl-10 bg-white rounded-b-lg resize-none"
             name="template_body"
             placeholder="Body"
+            ref={bodyRef}
           />
         </div>
       </div>

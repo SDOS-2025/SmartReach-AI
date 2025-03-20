@@ -1,6 +1,7 @@
 'use client';
 import Autoplay from 'embla-carousel-autoplay';
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from '@/components/ui/carousel';
+import Image from 'next/image';
 
 const TEST_SLIDES = [
   {
@@ -45,9 +46,10 @@ export function CarouselShadcn() {
 
             {/* Image Half */}
             <div className="w-full bg-[#0F142E] flex flex-col justify-center p-14 items-center md:w-5/12 h-1/2 md:h-full text-white relative">
-              <img
+              <Image
                 src={slide.image}
                 className="w-full h-[45vh] object-fill"
+                alt={slide.image_discription || "Carousel slide image"}
                 // style={{ aspectRatio: '1/1' }}
               />
               <div className='text-center text-3xl mt-6 font-bold'>
