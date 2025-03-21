@@ -1,6 +1,7 @@
 import React from 'react'
 import NavigationMenu from './components/NavigationMenu'
 import { CarouselShadcn } from './components/CarouselShad'
+import Image from 'next/image'
 
 
 function HomePage() {
@@ -22,8 +23,21 @@ function HomePage() {
             decision making.
           </span>
         </div>
-        <div className='flex-[3] flex items-center justify-center text-3xl'>
-            graphss
+        <div className="flex-[3] flex items-center justify-center text-3xl">
+          <div className="w-1/2 h-full flex justify-center items-center p-12">
+            <img
+              src="/images/slide1.png"
+              alt="slide image"
+              className="w-full h-full object-cover"
+            />
+          </div>
+          <div className="w-1/2 h-full flex justify-center items-center p-12">
+            <img
+              src="/images/slide2.png"
+              alt="Carousel slide image"
+              className="w-full h-full object-cover"
+            />
+          </div>
         </div>
       </div>
 

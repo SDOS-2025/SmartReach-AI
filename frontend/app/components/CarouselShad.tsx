@@ -8,14 +8,14 @@ const TEST_SLIDES = [
     id: 1,
     title: "Do more with data",
     description: "SmartReach AI revolutionizes email campaigns with AI-driven templates customized to your business needs and audience insights. Automate outreach, personalize every message, and drive higher engagement effortlessly—saving time while maximizing impact.",
-    image: "/images/campaign-ai.jpg",
+    image: "/images/carousel1.png",
     image_discription: "Effortless Email Outreach – AI-Powered, Data-Driven, and Impactful."
   },
   {
     id: 2,
     title: "Optimize Outreach with AI",
     description: "SmartReach AI leverages advanced language models to craft high-quality, personalized email templates that align with your business needs and audience insights. Generate engaging, well-structured content that enhances deliverability, bypasses spam filters, and maximizes response rates—effortlessly automating outreach while saving time.",
-    image: "/images/analytics-dash.jpg",
+    image: "/images/carousel2.png",
     image_discription: "Effortless Email Outreach – AI-Powered, Data-Driven, and Impactful."
     
   },

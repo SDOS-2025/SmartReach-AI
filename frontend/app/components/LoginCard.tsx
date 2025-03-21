@@ -15,41 +15,49 @@ const LoginCard = ({ view, setView }: LoginCardProps) => {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [email, setEmail] = useState('');
-
   const [emailHostUser, setEmailHostUser] = useState('');
   const [emailHostPassword, setEmailHostPassword] = useState('');
   const [emailHost, setEmailHost] = useState('');
   const [emailPort, setEmailPort] = useState('');
   const [emailUseTLS, setEmailUseTLS] = useState(true);
+  const [showLoginErrors, setShowLoginErrors] = useState(false);
+  const [showSignupIndErrors, setShowSignupIndErrors] = useState(false);
+  const [showSignupBusErrors, setShowSignupBusErrors] = useState(false);
 
   const handleGoogleLogin = () => {
-    window.location.href = '/api/social-auth/login/google-oauth2/';
+    window.location.href = '/social-auth/login/google-oauth2/';
   };
 
+  const isLoginValid = () => username.trim() !== '' && password.trim() !== '';
+  const isSignupIndividualValid = () => username.trim() !== '' && email.trim() !== '' && password.trim() !== '';
+  const isSignupBusinessValid = () =>
+    username.trim() !== '' &&
+    email.trim() !== '' &&
+    password.trim() !== '' &&
+    emailHostUser.trim() !== '' &&
+    emailHostPassword.trim() !== '' &&
+    emailHost.trim() !== '' &&
+    emailPort.trim() !== '';
+
   const handleLogin = async () => {
-    // Build the request body with username and password
-    const requestBody = {
-      username,
-      password,
-    };
-  
+    setShowLoginErrors(true);
+    if (!isLoginValid()) {
+      console.error('Please fill all required fields: Username, Password');
+      return;
+    }
+
+    const requestBody = { username, password };
     try {
       const response = await fetch('/api/user-login', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(requestBody),
       });
-  
-      // Check if the response status indicates an error
       if (!response.ok) {
         const errorData = await response.json();
         console.error('Login error:', errorData);
-        // Optionally display an error message to the user
         return;
       }
-  
       const data = await response.json();
       console.log('Login response:', data);
       if (data.message === 'Login successful') {
@@ -61,7 +69,14 @@ const LoginCard = ({ view, setView }: LoginCardProps) => {
   };
 
   const handleSignupBusiness = async () => {
-    // Build the request body with all the required fields
+    setShowSignupBusErrors(true);
+    if (!isSignupBusinessValid()) {
+      console.error(
+        'Please fill all required fields: Business Name, Email, Password, Email Host User, Email Host Password, Email Host, Email Port'
+      );
+      return;
+    }
+
     const requestBody = {
       username,
       email,
@@ -72,70 +87,56 @@ const LoginCard = ({ view, setView }: LoginCardProps) => {
       email_port: emailPort,
       email_use_tls: emailUseTLS,
     };
-
     try {
       const response = await fetch('/api/signup-business', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(requestBody),
       });
-
       if (!response.ok) {
         const errorData = await response.json();
         console.error('Signup error:', errorData);
         return;
       }
-
       const data = await response.json();
       console.log('Signup response:', data);
-
       if (data.message === 'User and organization created successfully') {
-        // Redirect to login view after a successful signup
         setView('login');
-        // Optionally, you can redirect with: window.location.href = '/login';
-      } else {
-        console.error('Unexpected response:', data);
       }
     } catch (error) {
       console.error('Error during signup:', error);
     }
   };
 
-const handleSignupIndividuals = async () => {
-  // Build the request body with username, email, and password
-  const requestBody = { username, email, password };
-
-  try {
-    const response = await fetch('/api/signup-individuals', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(requestBody),
-    });
-
-    if (!response.ok) {
-      const errorData = await response.json();
-      console.error('Signup error:', errorData);
+  const handleSignupIndividuals = async () => {
+    setShowSignupIndErrors(true);
+    if (!isSignupIndividualValid()) {
+      console.error('Please fill all required fields: Name, Email, Password');
       return;
     }
 
-    const data = await response.json();
-    console.log('Signup response:', data);
-
-    // Check if signup was successful and route accordingly.
-    // For example, route to the login view:
-    if (data.message === 'User created successfully') {
-      setView('login');
-      // OR for a full redirect, uncomment the line below:
-      // window.location.href = '/login';
-    } else {
-      console.error('Unexpected response:', data);
+    const requestBody = { username, email, password };
+    try {
+      const response = await fetch('/api/signup-individuals', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(requestBody),
+      });
+      if (!response.ok) {
+        const errorData = await response.json();
+        console.error('Signup error:', errorData);
+        return;
+      }
+      const data = await response.json();
+      console.log('Signup response:', data);
+      if (data.message === 'User created successfully') {
+        setView('login');
+      }
+    } catch (error) {
+      console.error('Error during signup:', error);
     }
-  } catch (error) {
-    console.error('Error during signup:', error);
-  }
-};
+  };
 
-  // Login Form
   const renderLoginForm = () => (
     <>
       <h1 className="text-3xl font-bold text-center mb-4">Welcome to SmartReachAI</h1>
@@ -147,7 +148,9 @@ const handleSignupIndividuals = async () => {
           placeholder="Username"
           value={username}
           onChange={(e) => setUsername(e.target.value)}
+          required
         />
+        {showLoginErrors && !username && <p className="text-red-500 text-sm mt-1">This field is required</p>}
       </Label>
       <Label className="block mt-4">
         <Input
@@ -156,13 +159,15 @@ const handleSignupIndividuals = async () => {
           placeholder="Password"
           value={password}
           onChange={(e) => setPassword(e.target.value)}
+          required
         />
+        {showLoginErrors && !password && <p className="text-red-500 text-sm mt-1">This field is required</p>}
       </Label>
       <a href="#" className="text-sm text-blue-500 hover:underline mb-3">
         Forgot Password?
       </a>
       <Button
-        className="w-full bg-blue-500 h-14 text-xl text-white py-2 mt-1 rounded-full hover:bg-blue-600"
+        className="w-full bg-blue-500 h-14 text-xl text-white py-2 mt-1 rounded-full hover:bg-blue-600 transition-all duration-300 ease-in-out hover:scale-95 hover:shadow-md hover:shadow-blue-500/50 animate-shrink-shadow"
         onClick={handleLogin}
       >
         Login
@@ -173,7 +178,7 @@ const handleSignupIndividuals = async () => {
         <Separator className="flex-auto" />
       </div>
       <Button
-        className="w-full bg-red-500 h-14 text-xl text-white py-2 rounded-full hover:bg-red-600"
+        className="w-full bg-red-500 h-14 text-xl text-white py-2 rounded-full hover:bg-red-600 transition-all duration-300 ease-in-out hover:scale-95 hover:shadow-md hover:shadow-red-500/50 animate-shrink-shadow"
         onClick={handleGoogleLogin}
       >
         Login with Google
@@ -181,7 +186,6 @@ const handleSignupIndividuals = async () => {
     </>
   );
 
-  // Signup Form for Individuals
   const renderSignupIndividualForm = () => (
     <>
       <h1 className="text-3xl font-bold text-center mb-4">Signup for Individuals</h1>
@@ -193,7 +197,9 @@ const handleSignupIndividuals = async () => {
           placeholder="Enter your name"
           value={username}
           onChange={(e) => setUsername(e.target.value)}
+          required
         />
+        {showSignupIndErrors && !username && <p className="text-red-500 text-sm mt-1">This field is required</p>}
       </Label>
       <Label className="block mt-4">
         <span className="text-lg">Email</span>
@@ -203,7 +209,9 @@ const handleSignupIndividuals = async () => {
           placeholder="Enter your email"
           value={email}
           onChange={(e) => setEmail(e.target.value)}
+          required
         />
+        {showSignupIndErrors && !email && <p className="text-red-500 text-sm mt-1">This field is required</p>}
       </Label>
       <Label className="block mt-4">
         <span className="text-lg">Password</span>
@@ -213,19 +221,17 @@ const handleSignupIndividuals = async () => {
           placeholder="Create a password"
           value={password}
           onChange={(e) => setPassword(e.target.value)}
+          required
         />
+        {showSignupIndErrors && !password && <p className="text-red-500 text-sm mt-1">This field is required</p>}
       </Label>
       <Button
-        className="w-full bg-blue-500 h-14 text-xl text-white py-2 mt-6 rounded-full hover:bg-blue-600"
+        className="w-full bg-blue-500 h-14 text-xl text-white py-2 mt-6 rounded-full hover:bg-blue-600 transition-all duration-300 ease-in-out hover:scale-95 hover:shadow-md hover:shadow-blue-500/50 animate-shrink-shadow"
         onClick={handleSignupIndividuals}
       >
         Sign Up
       </Button>
-      <Button
-        variant="link"
-        className="mt-4 text-blue-500 text-lg"
-        onClick={() => setView('login')}
-      >
+      <Button variant="link" className="mt-4 text-blue-500 text-lg" onClick={() => setView('login')}>
         Back to Login
       </Button>
     </>
@@ -242,7 +248,9 @@ const handleSignupIndividuals = async () => {
           placeholder="Enter your business name"
           value={username}
           onChange={(e) => setUsername(e.target.value)}
+          required
         />
+        {showSignupBusErrors && !username && <p className="text-red-500 text-sm mt-1">This field is required</p>}
       </Label>
       <Label className="block mt-4">
         <span className="text-lg">Business Email</span>
@@ -252,7 +260,9 @@ const handleSignupIndividuals = async () => {
           placeholder="Enter your business email"
           value={email}
           onChange={(e) => setEmail(e.target.value)}
+          required
         />
+        {showSignupBusErrors && !email && <p className="text-red-500 text-sm mt-1">This field is required</p>}
       </Label>
       <Label className="block mt-4">
         <span className="text-lg">Password</span>
@@ -262,7 +272,9 @@ const handleSignupIndividuals = async () => {
           placeholder="Create a password"
           value={password}
           onChange={(e) => setPassword(e.target.value)}
+          required
         />
+        {showSignupBusErrors && !password && <p className="text-red-500 text-sm mt-1">This field is required</p>}
       </Label>
       <Label className="block mt-4">
         <span className="text-lg">Email Host User</span>
@@ -272,7 +284,9 @@ const handleSignupIndividuals = async () => {
           placeholder="Enter your email host user"
           value={emailHostUser}
           onChange={(e) => setEmailHostUser(e.target.value)}
+          required
         />
+        {showSignupBusErrors && !emailHostUser && <p className="text-red-500 text-sm mt-1">This field is required</p>}
       </Label>
       <Label className="block mt-4">
         <span className="text-lg">Email Host Password</span>
@@ -282,7 +296,9 @@ const handleSignupIndividuals = async () => {
           placeholder="Enter your email host password"
           value={emailHostPassword}
           onChange={(e) => setEmailHostPassword(e.target.value)}
+          required
         />
+        {showSignupBusErrors && !emailHostPassword && <p className="text-red-500 text-sm mt-1">This field is required</p>}
       </Label>
       <Label className="block mt-4">
         <span className="text-lg">Email Host</span>
@@ -292,7 +308,9 @@ const handleSignupIndividuals = async () => {
           placeholder="Enter your email host (e.g. smtp.gmail.com)"
           value={emailHost}
           onChange={(e) => setEmailHost(e.target.value)}
+          required
         />
+        {showSignupBusErrors && !emailHost && <p className="text-red-500 text-sm mt-1">This field is required</p>}
       </Label>
       <Label className="block mt-4">
         <span className="text-lg">Email Port</span>
@@ -302,7 +320,9 @@ const handleSignupIndividuals = async () => {
           placeholder="Enter your email port (e.g. 587)"
           value={emailPort}
           onChange={(e) => setEmailPort(e.target.value)}
+          required
         />
+        {showSignupBusErrors && !emailPort && <p className="text-red-500 text-sm mt-1">This field is required</p>}
       </Label>
       <Label className="flex justify-start mt-4">
         <span className="text-lg">Email Use TLS</span>
@@ -314,26 +334,29 @@ const handleSignupIndividuals = async () => {
         />
       </Label>
       <Button
-        className="w-full bg-blue-500 h-14 text-xl text-white py-2 mt-6 rounded-full hover:bg-blue-600"
+        className="w-full bg-blue-500 h-14 text-xl text-white py-2 mt-6 rounded-full hover:bg-blue-600 transition-all duration-300 ease-in-out hover:scale-95 hover:shadow-md hover:shadow-blue-500/50 animate-shrink-shadow"
         onClick={handleSignupBusiness}
       >
         Sign Up
       </Button>
-      <Button
-        variant="link"
-        className="mt-4 text-blue-500 text-lg"
-        onClick={() => setView('login')}
-      >
+      <Button variant="link" className="mt-4 text-blue-500 text-lg" onClick={() => setView('login')}>
         Back to Login
       </Button>
     </>
   );
 
   return (
-    <div className="px-12 py-4 max-w- md:p-4 md:p-6 my-auto flex flex-col space-y-6">
+    <div className="px-12 py-4 max-w-md:p-4 md:p-6 my-auto flex flex-col space-y-6">
       {view === 'login' && renderLoginForm()}
       {view === 'signup-individual' && renderSignupIndividualForm()}
       {view === 'signup-business' && renderSignupBusinessForm()}
+      <style jsx>{`
+        @keyframes shrink-shadow {
+          0%, 100% { transform: scale(1); box-shadow: 0 0 0 rgba(0, 0, 0, 0); }
+          50% { transform: scale(0.98); box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1); }
+        }
+        .animate-shrink-shadow { animation: shrink-shadow 2s infinite ease-in-out; }
+      `}</style>
     </div>
   );
 };
