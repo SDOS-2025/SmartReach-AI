@@ -25,7 +25,7 @@ const LoginCard = ({ view, setView }: LoginCardProps) => {
   const [showSignupBusErrors, setShowSignupBusErrors] = useState(false);
 
   const handleGoogleLogin = () => {
-    window.location.href = '/social-auth/login/google-oauth2/';
+    window.location.href = 'http://localhost:8000/social-auth/login/google-oauth2/';
   };
 
   const isLoginValid = () => username.trim() !== '' && password.trim() !== '';
