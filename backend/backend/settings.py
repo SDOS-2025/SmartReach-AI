@@ -26,9 +26,9 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = 'django-insecure-2f#z$_md2-tr0gs+z6%4t0^r05$1#*2@6-#pm%$1f@n%mrpzgb'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = False
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['smartreachai.social', '172.30.2.113', 'localhost']
 
 
 # Application definition
@@ -209,12 +209,13 @@ SOCIAL_AUTH_GOOGLE_OAUTH2_SECRET = GOOGLE_OAUTH2_CLIENT_SECRET
 SOCIAL_AUTH_URL_NAMESPACE = 'social'
 
 SOCIAL_AUTH_GOOGLE_OAUTH2_REDIRECT_URI = 'http://localhost:8000/social-auth/complete/google-oauth2/'
-SOCIAL_AUTH_ALLOWED_REDIRECT_HOSTS = ['localhost:3000', 'localhost:8000']
+SOCIAL_AUTH_ALLOWED_REDIRECT_HOSTS = ['localhost:3000', 'localhost:8000', 'smartreachai.social']
 
 # Additional Security Settings
 CSRF_COOKIE_SECURE = False  # Set to True in production with HTTPS
 CSRF_TRUSTED_ORIGINS = [
     "http://localhost:3000",
+    "smartreachai.social"
 ]
 
 # Debug Settings

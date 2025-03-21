@@ -29,11 +29,23 @@ function EmailPage() {
     urgency: '',
     additionalInfo: '',
   });
-  const [step3Data, setStep3Data] = useState({
+  const [step3Data, setStep3Data] = useState<{
+    scheduleDate: string;
+    scheduleTime: string;
+    goal: string;
+    timezones: string[]; // ✅ Ensure this is string[]
+    timezoneOther: string;
+    behavior: string;
+    dataUpload: File | null; // ✅ Explicit type for files
+    frequency: string;
+    frequencyCustom: string;
+    industry: string;
+    abTest: boolean;
+  }>({
     scheduleDate: '',
     scheduleTime: '',
     goal: '',
-    timezones: [],
+    timezones: [], // ✅ Initialize as an empty string array
     timezoneOther: '',
     behavior: '',
     dataUpload: null,
@@ -278,7 +290,7 @@ function EmailPage() {
             onChange={handleTextChange('customCta')}
             required
           />
-          {showErrors && !forlgata.customCta && <p className="text-red-500 text-sm mt-1">This field is required when "Other" is selected</p>}
+          {showErrors && !forlgata.customCta && <p className="text-red-500 text-sm mt-1">This field is required when {"Other"} is selected</p>}
         </div>
       )}
       <div className="mb-4">
@@ -561,7 +573,7 @@ function EmailPage() {
     }
 
     try {
-      const response = await fetch('http://localhost:8000/api/generate-template', {
+      const response = await fetch('/api/generate-template', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(forlgata),
@@ -584,7 +596,7 @@ function EmailPage() {
     }
 
     try {
-      const response = await fetch('http://localhost:8000/api/generate-template', {
+      const response = await fetch('/api/generate-template', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(step2Data),
@@ -605,17 +617,19 @@ function EmailPage() {
 
     const formData = new FormData();
     Object.entries(step3Data).forEach(([key, value]) => {
-      if (key === 'dataUpload' && value) {
-        formData.append(key, value);
-      } else if (key === 'timezones') {
-        formData.append(key, JSON.stringify(value));
-      } else {
-        formData.append(key, value);
+      if (key === 'dataUpload' && value instanceof File) {
+        formData.append(key, value); // ✅ Ensure value is a File before appending
+      } else if (key === 'timezones' && Array.isArray(value)) {
+        formData.append(key, JSON.stringify(value)); // ✅ Convert array to JSON string
+      } else if (typeof value === 'boolean') {
+        formData.append(key, value.toString()); // ✅ Convert boolean to string
+      } else if (typeof value === 'string') {
+        formData.append(key, value); // ✅ Only append strings
       }
     });
 
     try {
-      const response = await fetch('http://localhost:8000/api/generate-template', {
+      const response = await fetch('/api/generate-template', {
         method: 'POST',
         body: formData,
       });

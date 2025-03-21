@@ -3,11 +3,12 @@ django
 django-cors-headers
 djangorestframework
 social-auth-app-django
-psycopg2
+psycopg2-binary
 pytz
 pandas
 numpy
 scikit-learn
 openai
 requests
+gunicorn
 openai
