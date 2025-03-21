@@ -561,7 +561,7 @@ function EmailPage() {
     }
 
     try {
-      const response = await fetch('/api/generate-template', {
+      const response = await fetch('http://localhost:8000/api/generate-template', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(forlgata),
@@ -584,7 +584,7 @@ function EmailPage() {
     }
 
     try {
-      const response = await fetch('/api/generate-template', {
+      const response = await fetch('http://localhost:8000/api/generate-template', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(step2Data),
@@ -615,7 +615,7 @@ function EmailPage() {
     });
 
     try {
-      const response = await fetch('/api/generate-template', {
+      const response = await fetch('http://localhost:8000/api/generate-template', {
         method: 'POST',
         body: formData,
       });

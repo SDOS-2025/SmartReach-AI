@@ -48,7 +48,7 @@ const LoginCard = ({ view, setView }: LoginCardProps) => {
 
     const requestBody = { username, password };
     try {
-      const response = await fetch('/api/user-login', {
+      const response = await fetch('http://localhost:8000/api/user-login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(requestBody),
@@ -88,7 +88,7 @@ const LoginCard = ({ view, setView }: LoginCardProps) => {
       email_use_tls: emailUseTLS,
     };
     try {
-      const response = await fetch('/api/signup-business', {
+      const response = await fetch('http://localhost:8000/api/signup-business', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(requestBody),
@@ -117,7 +117,7 @@ const LoginCard = ({ view, setView }: LoginCardProps) => {
 
     const requestBody = { username, email, password };
     try {
-      const response = await fetch('/api/signup-individuals', {
+      const response = await fetch('http://localhost:8000/api/signup-individuals', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(requestBody),
