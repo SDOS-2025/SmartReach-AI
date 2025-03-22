@@ -10,7 +10,9 @@ from .views import (
     signup_individuals,
     signup_business,
     generate_template,
-    track_email_click
+    track_email_click,
+    generate_template_additional_info,
+    generate_template_send_time
 )
 
 urlpatterns = [
@@ -24,6 +26,8 @@ urlpatterns = [
     path('signup-individuals', signup_individuals),
     path('signup-business', signup_business),
     path('generate-template', generate_template),
-    path('track-click/', track_email_click, name='track-email-click')
+    path('track-click/', track_email_click, name='track-email-click'),
+    path('additional-info-template', generate_template_additional_info),
+    path('send-time-instructions-template', generate_template_send_time),
 
 ]

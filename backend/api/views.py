@@ -370,8 +370,6 @@ def signup_business(request):
 
 @api_view(['POST'])
 def generate_template(request):
-    print("hi")
-    print(request.data)
     category = request.data.get('category')
     tone = request.data.get('tone')
     content_type = request.data.get('contentType')
@@ -433,3 +431,21 @@ def track_email_click(request):
             logger.error(f"Error tracking email click: {str(e)}")
 
     return HttpResponseRedirect(redirect_url)  # Redirect user to content
+
+@api_view(['POST'])
+def generate_template_additional_info(request):
+    call_to_action = request.data.get('callToAction')
+    urgency = request.data.get('urgency')
+    additional_info = request.data.get('additionalInfo')
+
+    if not all([call_to_action, urgency, additional_info]):
+        return Response({'error': 'Missing required fields'}, status=400)
+    else:
+        return Response({'message': 'Additional info received successfully'})
+
+@api_view(['POST'])
+def generate_template_send_time(request):
+    schedule_date = request.data.get('scheduleDate')
+    schedule_time = request.data.get('scheduleTime')
+    goal = request.data.get('open-rates')
+    timezone
