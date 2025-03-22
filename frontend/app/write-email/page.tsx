@@ -324,20 +324,20 @@ function EmailPage() {
 
   const renderStep3 = () => (
     <div className="flex-[6] overflow-y-auto h-full px-10 text-lg flex flex-col items-center justify-center">
-      <h2 className="text-2xl font-bold text-gray-800 mb-4">Step 3: Rickroll Time!</h2>
+      <h2 className="text-2xl font-bold text-gray-800 mb-4">Step 3: Tharun Ninja!</h2>
       <img
-        src="https://media4.giphy.com/media/v1.Y2lkPTc5MGI3NjExbHpoMHg3aXl3bnlldm9hOTRjcWltanY0Y3ptdG92b3gxcDF0N2NmYSZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/Ju7l5y9osyymQ/giphy.gif"
+        src="images/image.png"
         alt="Rick Astley Rickrolling"
         className="w-full max-w-md h-auto rounded-lg shadow-lg"
       />
       <audio autoPlay loop className="hidden">
         <source
-          src="https://www.myinstants.com/media/sounds/rickroll.mp3"
+          src="/audio/JD.mp3"
           type="audio/mpeg"
         />
         Your browser does not support the audio element.
       </audio>
-      <p className="text-gray-600 mt-4">Never gonna give you up, never gonna let you down!</p>
+      <p className="text-gray-600 mt-4">ADHD ahh Hyper ahh</p>
     </div>
   );
 

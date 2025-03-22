@@ -4,6 +4,7 @@ from django.utils.timezone import now
 from django.urls import reverse
 from .models import Organization, EmailLog
 import logging
+from django.core.mail import get_connection, EmailMultiAlternatives
 
 logger = logging.getLogger(__name__)
 
@@ -12,14 +13,28 @@ def send_scheduled_email(self, organization_id, user_email, subject, message):
     try:
         # Fetch organization details
         organization = Organization.objects.get(org_id_id=organization_id)
-
-        # Create tracking link (this should point to your Django tracking endpoint)
-        tracking_url = f"http://127.0.0.1:8000/api/track-click?email={user_email}&organization={organization_id}"
+        tracking_url = f"http://smartreachai.social/api/track-click?email={user_email}&organization={organization_id}"
         user_email_ = user_email
-        # Append tracking link to email message
-        email_body = f"{message}\n\nTo track email engagement, click here: {tracking_url}"
+        # TEXT fallback version
+        text_body = f"{message}\n\nClick here to learn more: {tracking_url}"
 
-        # Establish email connection
+        # HTML-formatted version of the message
+        paragraphs = message.split('\n\n')  # preserve paragraph spacing
+        html_message = ''.join(f'<p>{p.replace("\n", "<br>")}</p>' for p in paragraphs)
+
+        # Full HTML body with the tracking link
+        html_body = f"""
+        <html>
+          <body>
+            {html_message}
+            <p>
+              <a href="{tracking_url}">Click here to learn more</a>
+            </p>
+          </body>
+        </html>
+        """
+
+        # Setup email connection
         connection = get_connection(
             backend="django.core.mail.backends.smtp.EmailBackend",
             host=organization.email_host,
@@ -29,21 +44,22 @@ def send_scheduled_email(self, organization_id, user_email, subject, message):
             use_tls=organization.email_use_tls,
         )
 
-        # Send email
-        send_mail(
-            "hey",
-            f"hi\n{tracking_url}\n",  # Modified message with tracking link
-            organization.email_host_user,
-            [user_email_],
-            connection=connection,
-            fail_silently=False,
+        # Send email with both plain text and HTML
+        email = EmailMultiAlternatives(
+            subject=subject,
+            body=text_body,
+            from_email=organization.email_host_user,
+            to=[user_email_],
+            connection=connection
         )
+        email.attach_alternative(html_body, "text/html")
+        email.send()
 
-        # Log email sent
+        # Log success
         EmailLog.objects.create(
             organization_id=organization_id,
             user_email=user_email_,
-            subject="",
+            subject=subject,
             sent_at=now(),
             status="Sent"
         )
@@ -52,11 +68,11 @@ def send_scheduled_email(self, organization_id, user_email, subject, message):
         return f"Email successfully sent to {user_email_} from {organization.email_host_user}"
 
     except Exception as e:
-        # Log email failure
+        # Log failure
         EmailLog.objects.create(
             organization_id=organization_id,
             user_email=user_email_,
-            subject="",
+            subject=subject,
             sent_at=now(),
             status=f"Failed: {str(e)}"
         )

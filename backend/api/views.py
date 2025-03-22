@@ -109,12 +109,10 @@ def send_time_optim(request):
     org_id = cache.get('org_id')
     user_id = cache.get('user_id')
     campaign_id = cache.get('campaign_id')
-
     campaign = CampaignDetails.objects.get(campaign_id=campaign_id)
     users = CompanyUser.objects.filter(org_id_id=org_id)
-
-    subject = campaign.campaign_mail_body
-    message = campaign.campaign_mail_subject
+    subject = campaign.campaign_mail_subject
+    message = campaign.campaign_mail_body
     schedule_time = campaign.send_time
     schedule_date,schedule_time = str(schedule_time).split(" ")
     schedule_time = schedule_time.split("+")[0][:-3]
@@ -123,7 +121,7 @@ def send_time_optim(request):
 
 
 
-
+    print(subject)
     if not users.exists():
         return JsonResponse({"error": "No users found for this organization"}, status=400)
 
@@ -137,12 +135,16 @@ def send_time_optim(request):
         # engagement = UserEngagement.objects.filter(user_id=user.user_id).first()
         # if not engagement:
         #     continue  # Skip users with no engagement data
-
+        print(user.first_name)
+        message = message.replace("[Your Company/Project Name]", "SmartReach")
+        message_ = message.replace("[Recipient’s Name]", user.first_name)
+        
+        print(message_)
         user_email = user.email
         print(utc_send_time)
         # Schedule email via Celery
         send_scheduled_email.apply_async(
-            args=[org_id, user_email, subject, message],
+            args=[org_id, user_email, subject, message_],
             eta=utc_send_time  # Schedule email at the converted UTC time
             )
 
