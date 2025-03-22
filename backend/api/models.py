@@ -129,9 +129,9 @@ class CampaignStatistics(models.Model):
 class EmailLog(models.Model):
     organization_id = models.IntegerField()
     user_email = models.EmailField()
-    subject = models.CharField(max_length=255)
+    subject = models.CharField(max_length=1024)
     sent_at = models.DateTimeField(default=now)
-    status = models.CharField(max_length=255)  # Sent, Failed, Clicked
+    status = models.CharField(max_length=1024)  # Sent, Failed, Clicked
     clicked_at = models.DateTimeField(null=True, blank=True)
     class Meta:
         db_table = 'email_log'

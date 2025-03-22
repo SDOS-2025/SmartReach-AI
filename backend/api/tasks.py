@@ -15,10 +15,10 @@ def send_scheduled_email(self, organization_id, user_email, subject, message):
 
         # Create tracking link (this should point to your Django tracking endpoint)
         tracking_url = f"http://127.0.0.1:8000/api/track-click?email={user_email}&organization={organization_id}"
-        user_email_ = 'rahul.omalur14@gmail.com'
+        user_email_ = user_email
         # Append tracking link to email message
         email_body = f"{message}\n\nTo track email engagement, click here: {tracking_url}"
-        print(email_body)
+
         # Establish email connection
         connection = get_connection(
             backend="django.core.mail.backends.smtp.EmailBackend",
@@ -31,8 +31,8 @@ def send_scheduled_email(self, organization_id, user_email, subject, message):
 
         # Send email
         send_mail(
-            subject,
-            email_body,  # Modified message with tracking link
+            "hey",
+            f"hi\n{tracking_url}\n",  # Modified message with tracking link
             organization.email_host_user,
             [user_email_],
             connection=connection,
@@ -43,7 +43,7 @@ def send_scheduled_email(self, organization_id, user_email, subject, message):
         EmailLog.objects.create(
             organization_id=organization_id,
             user_email=user_email_,
-            subject=subject,
+            subject="",
             sent_at=now(),
             status="Sent"
         )
@@ -56,7 +56,7 @@ def send_scheduled_email(self, organization_id, user_email, subject, message):
         EmailLog.objects.create(
             organization_id=organization_id,
             user_email=user_email_,
-            subject=subject,
+            subject="",
             sent_at=now(),
             status=f"Failed: {str(e)}"
         )

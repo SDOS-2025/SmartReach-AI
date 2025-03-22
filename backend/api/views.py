@@ -111,6 +111,46 @@ def send_time_optim(request):
     campaign_id = cache.get('campaign_id')
 
     campaign = CampaignDetails.objects.get(campaign_id=campaign_id)
+    users = CompanyUser.objects.filter(org_id_id=org_id)
+
+    subject = campaign.campaign_mail_body
+    message = campaign.campaign_mail_subject
+    schedule_time = campaign.send_time
+    schedule_date,schedule_time = str(schedule_time).split(" ")
+    schedule_time = schedule_time.split("+")[0][:-3]
+    # if not all([org_id, schedule_date, schedule_time, subject, message,sto_option]):
+    #             return JsonResponse({"error": "Missing required fields"}, status=400)
+
+
+
+
+    if not users.exists():
+        return JsonResponse({"error": "No users found for this organization"}, status=400)
+
+    # Convert schedule time from IST to UTC
+    utc_send_time = convert_ist_to_utc(schedule_date,schedule_time)
+
+    # Loop through each user and schedule the email at the optimal time
+    for user in users:
+
+        # # Fetch engagement data
+        # engagement = UserEngagement.objects.filter(user_id=user.user_id).first()
+        # if not engagement:
+        #     continue  # Skip users with no engagement data
+
+        user_email = user.email
+        print(utc_send_time)
+        # Schedule email via Celery
+        send_scheduled_email.apply_async(
+            args=[org_id, user_email, subject, message],
+            eta=utc_send_time  # Schedule email at the converted UTC time
+            )
+
+    return JsonResponse({"message": "Emails scheduled successfully", "send_time": str(utc_send_time)})
+
+
+
+
 
     return Response({'message': 'Send time optimization successful'})
 
