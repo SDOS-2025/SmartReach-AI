@@ -12,7 +12,8 @@ from .views import (
     generate_template,
     track_email_click,
     generate_template_additional_info,
-    generate_template_send_time
+    generate_template_send_time,
+    send_time_optim
 )
 
 urlpatterns = [
@@ -29,5 +30,6 @@ urlpatterns = [
     path('track-click/', track_email_click, name='track-email-click'),
     path('additional-info-template', generate_template_additional_info),
     path('send-time-instructions-template', generate_template_send_time),
+    path('sto', send_time_optim),
 
 ]

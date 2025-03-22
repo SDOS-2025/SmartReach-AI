@@ -22,8 +22,11 @@ from .LLM_template_generator import TemplateGenerator
 from django.http import JsonResponse, HttpResponseRedirect
 from django.utils.timezone import now
 from .models import EmailLog
+
+
 import logging
 logger = logging.getLogger(__name__)
+
 
 @api_view(['GET'])
 def hello_world(request):
@@ -92,6 +95,10 @@ def convert_ist_to_utc(ist_date, ist_time):
     utc_datetime = ist_datetime.astimezone(utc)
 
     return utc_datetime
+
+@api_view(['GET'])
+def send_time_optim(request):
+    return Response({'message': 'gotcha'})
 
 @csrf_exempt
 def sto_view(request):
@@ -443,9 +450,44 @@ def generate_template_additional_info(request):
     else:
         return Response({'message': 'Additional info received successfully'})
 
+import csv
+from io import TextIOWrapper
+
 @api_view(['POST'])
 def generate_template_send_time(request):
-    schedule_date = request.data.get('scheduleDate')
-    schedule_time = request.data.get('scheduleTime')
-    goal = request.data.get('open-rates')
-    timezone
+    start_date = request.data.get('startDate')
+    start_time = request.data.get('startTime')
+    end_date = request.data.get('endTime')
+    # Access the uploaded file from request.FILES
+    uploaded_file = request.FILES.get('dataUpload')
+
+    # Log the received data for debugging
+    print(f"Start Date: {start_date}")
+    print(f"Start Time: {start_time}")
+    print(f"End Date: {end_date}")
+    print(f"Uploaded File: {uploaded_file}")
+
+    # Process the CSV file if it exists
+    if uploaded_file:
+        # Wrap the file in TextIOWrapper to handle it as text (assumes UTF-8 encoding)
+        csv_file = TextIOWrapper(uploaded_file, encoding='utf-8')
+        reader = csv.DictReader(csv_file)
+        
+        # Example: Print each row of the CSV
+        for row in reader:
+            print(row)  # row is a dict with column headers as keys
+
+        # Reset file pointer to beginning if you need to reuse it
+        csv_file.seek(0)
+
+        # Example response (modify as needed)
+        response_data = {
+            'message': 'Timings and file received successfully',
+            'start_date': start_date,
+            'start_time': start_time,
+            'end_date': end_date,
+            'file_uploaded': bool(uploaded_file),
+        }
+        return JsonResponse(response_data, status=200)
+
+    return JsonResponse({'error': 'Invalid request method'}, status=400)

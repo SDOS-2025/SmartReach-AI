@@ -25,24 +25,17 @@ function EmailPage() {
     emailStructure: '',
   });
   const [step2Data, setStep2Data] = useState({
-    callToAction: '',
-    urgency: '',
-    additionalInfo: '',
-  });
-  const [step3Data, setStep3Data] = useState({
-    scheduleDate: '',
-    scheduleTime: '',
-    goal: '',
-    timezones: [],
-    timezoneOther: '',
-    behavior: '',
+    startDate: '',
+    startTime: '',
+    endDate: '',
     dataUpload: null,
-    frequency: '',
-    frequencyCustom: '',
-    industry: '',
-    abTest: false,
   });
-  const [showErrors, setShowErrors] = useState(false); // Controls error message visibility
+  const [showErrors, setShowErrors] = useState(false); 
+  const [isEmailGenerated, setIsEmailGenerated] = useState(false);
+  const [isTimeDataAdded, setIsTimeDataAdded] = useState(false);
+
+  const [emailSubject, setEmailSubject] = useState('');
+  const [emailBody, setEmailBody] = useState('');
 
   const handleSelectChange = (field: string) => (value: string) => {
     setForlgata((prev) => ({ ...prev, [field]: value }));
@@ -52,41 +45,12 @@ function EmailPage() {
     setForlgata((prev) => ({ ...prev, [field]: e.target.value }));
   };
 
-  const handleStep2SelectChange = (field: string) => (value: string) => {
-    setStep2Data((prev) => ({ ...prev, [field]: value }));
-  };
-
-  const handleStep2TextChange = (field: string) => (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+  const handleStep2InputChange = (field: string) => (e: React.ChangeEvent<HTMLInputElement>) => {
     setStep2Data((prev) => ({ ...prev, [field]: e.target.value }));
   };
 
-  const handleStep3InputChange = (field: string) => (e: React.ChangeEvent<HTMLInputElement>) => {
-    setStep3Data((prev) => ({ ...prev, [field]: e.target.value }));
-  };
-
-  const handleStep3SelectChange = (field: string) => (value: string) => {
-    setStep3Data((prev) => ({ ...prev, [field]: value }));
-  };
-
-  const handleStep3TextChange = (field: string) => (e: React.ChangeEvent<HTMLTextAreaElement>) => {
-    setStep3Data((prev) => ({ ...prev, [field]: e.target.value }));
-  };
-
-  const handleCheckboxChange = (field: string) => (checked: boolean) => {
-    if (field === 'abTest') {
-      setStep3Data((prev) => ({ ...prev, abTest: checked }));
-    } else {
-      setStep3Data((prev) => ({
-        ...prev,
-        timezones: checked
-          ? [...prev.timezones, field]
-          : prev.timezones.filter((tz) => tz !== field),
-      }));
-    }
-  };
-
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setStep3Data((prev) => ({ ...prev, dataUpload: e.target.files ? e.target.files[0] : null }));
+    setStep2Data((prev) => ({ ...prev, dataUpload: e.target.files ? e.target.files[0] : null }));
   };
 
   // Validation functions
@@ -108,16 +72,10 @@ function EmailPage() {
   };
 
   const isStep2Valid = () => {
-    return step2Data.callToAction.trim() !== '' && step2Data.urgency.trim() !== '';
-  };
-
-  const isStep3Valid = () => {
     return (
-      step3Data.scheduleDate.trim() !== '' &&
-      step3Data.scheduleTime.trim() !== '' &&
-      step3Data.goal.trim() !== '' &&
-      (step3Data.timezones.length > 0 || step3Data.timezoneOther.trim() !== '') &&
-      step3Data.frequency.trim() !== ''
+      step2Data.startDate.trim() !== '' &&
+      step2Data.startTime.trim() !== '' &&
+      step2Data.endDate.trim() != ''
     );
   };
 
@@ -300,61 +258,37 @@ function EmailPage() {
 
   const renderStep2 = () => (
     <div className="flex-[6] overflow-y-auto h-full px-10 text-lg">
-      <div className="mb-4">
-        <Label htmlFor="callToAction" className="text-lg">
-          What is your call to action? <span className="text-red-500">*</span>
-        </Label>
-        <Select name="callToAction" value={step2Data.callToAction} onValueChange={handleStep2SelectChange('callToAction')}>
-          <SelectTrigger className="w-full h-14 mt-2 bg-gray-100 p-2 border border-gray-300 rounded-lg">
-            <SelectValue placeholder="Choose" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="reply">Reply to this email</SelectItem>
-            <SelectItem value="visit">Visit a website</SelectItem>
-            <SelectItem value="purchase">Make a purchase</SelectItem>
-            <SelectItem value="signup">Sign up</SelectItem>
-            <SelectItem value="contact">Contact us</SelectItem>
-          </SelectContent>
-        </Select>
-        {showErrors && !step2Data.callToAction && <p className="text-red-500 text-sm mt-1">This field is required</p>}
-      </div>
-      <div className="mb-4">
-        <Label htmlFor="urgency" className="text-lg">
-          How urgent is this email? <span className="text-red-500">*</span>
-        </Label>
-        <Select name="urgency" value={step2Data.urgency} onValueChange={handleStep2SelectChange('urgency')}>
-          <SelectTrigger className="w-full h-14 mt-2 bg-gray-100 p-2 border border-gray-300 rounded-lg">
-            <SelectValue placeholder="Choose" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="immediate">Immediate</SelectItem>
-            <SelectItem value="soon">Within a few days</SelectItem>
-            <SelectItem value="week">Within a week</SelectItem>
-            <SelectItem value="month">Within a month</SelectItem>
-            <SelectItem value="noRush">No rush</SelectItem>
-          </SelectContent>
-        </Select>
-        {showErrors && !step2Data.urgency && <p className="text-red-500 text-sm mt-1">This field is required</p>}
-      </div>
-      <div className="mb-4">
-        <Label htmlFor="additionalInfo" className="text-lg">Any additional information to include?</Label>
-        <Textarea
-          name="additionalInfo"
-          id="additionalInfo"
-          placeholder="Enter Text"
-          className="w-full h-20 mt-2 p-2 resize-none border border-gray-300 rounded-lg bg-gray-100"
-          value={step2Data.additionalInfo}
-          onChange={handleStep2TextChange('additionalInfo')}
-        />
-      </div>
-    </div>
-  );
-
-  const renderStep3 = () => (
-    <div className="flex-[6] overflow-y-auto h-full px-10 text-lg">
       <div className="mb-6">
         <Label htmlFor="schedule" className="text-lg">
-          When would you like to schedule your campaign? <span className="text-red-500">*</span>
+          When would you like to start your campaign? <span className="text-red-500">*</span>
+        </Label>
+        <div className="mt-2 flex gap-4">
+          <Input
+            type="date"
+            name="startDate"
+            id="startDate"
+            className="w-1/2 h-14 p-2 border border-gray-300 rounded-lg bg-gray-100"
+            value={step2Data.startDate}
+            onChange={handleStep2InputChange('startDate')}
+            required
+          />
+          {showErrors && !step2Data.startDate && <p className="text-red-500 text-sm mt-1">Date is required</p>}
+          <Input
+            type="time"
+            name="scheduleTime"
+            id="scheduleTime"
+            className="w-1/2 h-14 p-2 border border-gray-300 rounded-lg bg-gray-100"
+            value={step2Data.startTime}
+            onChange={handleStep2InputChange('startTime')}
+            required
+          />
+          {showErrors && !step2Data.startTime && <p className="text-red-500 text-sm mt-1">Time is required</p>}
+        </div>
+      </div>
+
+      <div className="mb-6">
+        <Label htmlFor="schedule" className="text-lg">
+          When would you like to end your campaign? <span className="text-red-500">*</span>
         </Label>
         <div className="mt-2 flex gap-4">
           <Input
@@ -362,176 +296,48 @@ function EmailPage() {
             name="scheduleDate"
             id="scheduleDate"
             className="w-1/2 h-14 p-2 border border-gray-300 rounded-lg bg-gray-100"
-            value={step3Data.scheduleDate}
-            onChange={handleStep3InputChange('scheduleDate')}
+            value={step2Data.endDate}
+            onChange={handleStep2InputChange('endDate')}
             required
           />
-          {showErrors && !step3Data.scheduleDate && <p className="text-red-500 text-sm mt-1">Date is required</p>}
-          <Input
-            type="time"
-            name="scheduleTime"
-            id="scheduleTime"
-            className="w-1/2 h-14 p-2 border border-gray-300 rounded-lg bg-gray-100"
-            value={step3Data.scheduleTime}
-            onChange={handleStep3InputChange('scheduleTime')}
-            required
-          />
-          {showErrors && !step3Data.scheduleTime && <p className="text-red-500 text-sm mt-1">Time is required</p>}
+          {showErrors && !step2Data.endDate && <p className="text-red-500 text-sm mt-1">Date is required</p>}
+          
         </div>
       </div>
-      <div className="mb-6">
-        <Label htmlFor="goal" className="text-lg">
-          What is your primary goal for send-time optimization? <span className="text-red-500">*</span>
-        </Label>
-        <Select name="goal" value={step3Data.goal} onValueChange={handleStep3SelectChange('goal')}>
-          <SelectTrigger className="w-full h-14 mt-2 bg-gray-100 p-2 border border-gray-300 rounded-lg">
-            <SelectValue placeholder="Select a goal" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="open-rates">Maximize open rates</SelectItem>
-            <SelectItem value="click-through">Increase click-through rates</SelectItem>
-            <SelectItem value="conversions">Drive conversions (e.g., sales, sign-ups)</SelectItem>
-            <SelectItem value="engagement">Boost overall engagement</SelectItem>
-          </SelectContent>
-        </Select>
-        {showErrors && !step3Data.goal && <p className="text-red-500 text-sm mt-1">This field is required</p>}
-      </div>
-      <div className="mb-6">
-        <Label className="text-lg">
-          Which timezone(s) does your audience reside in? (Select at least one) <span className="text-red-500">*</span>
-        </Label>
-        <div className="mt-2 space-y-2">
-          <div className="flex items-center gap-2">
-            <Checkbox
-              id="tz-america"
-              name="timezone"
-              value="America/New_York"
-              className="w-5 h-5 border border-gray-400 rounded-sm bg-white data-[state=checked]:bg-blue-500"
-              checked={step3Data.timezones.includes('America/New_York')}
-              onCheckedChange={handleCheckboxChange('America/New_York')}
-            />
-            <Label htmlFor="tz-america">America (e.g., EST, PST)</Label>
-          </div>
-          <div className="flex items-center gap-2">
-            <Checkbox
-              id="tz-europe"
-              name="timezone"
-              value="Europe/London"
-              className="w-5 h-5 border border-gray-400 rounded-sm bg-white data-[state=checked]:bg-blue-500"
-              checked={step3Data.timezones.includes('Europe/London')}
-              onCheckedChange={handleCheckboxChange('Europe/London')}
-            />
-            <Label htmlFor="tz-europe">Europe (e.g., GMT, CET)</Label>
-          </div>
-          <div className="flex items-center gap-2">
-            <Checkbox
-              id="tz-asia"
-              name="timezone"
-              value="Asia/Tokyo"
-              className="w-5 h-5 border border-gray-400 rounded-sm bg-white data-[state=checked]:bg-blue-500"
-              checked={step3Data.timezones.includes('Asia/Tokyo')}
-              onCheckedChange={handleCheckboxChange('Asia/Tokyo')}
-            />
-            <Label htmlFor="tz-asia">Asia (e.g., IST, JST)</Label>
-          </div>
-          <div className="flex items-center gap-2">
-            <Checkbox
-              id="tz-other"
-              name="timezone"
-              value="other"
-              className="w-5 h-5 border border-gray-400 rounded-sm bg-white data-[state=checked]:bg-blue-500"
-              checked={step3Data.timezones.includes('other')}
-              onCheckedChange={handleCheckboxChange('other')}
-            />
-            <Label htmlFor="tz-other">Other (specify below)</Label>
-          </div>
-          <Input
-            type="text"
-            name="timezoneOther"
-            placeholder="Enter custom timezone (e.g., Australia/Sydney)"
-            className="w-full h-12 mt-2 p-2 border border-gray-300 rounded-lg bg-gray-100"
-            value={step3Data.timezoneOther}
-            onChange={handleStep3InputChange('timezoneOther')}
-          />
-          {showErrors && step3Data.timezones.length === 0 && !step3Data.timezoneOther && (
-            <p className="text-red-500 text-sm mt-1">At least one timezone is required</p>
-          )}
-        </div>
-      </div>
-      <div className="mb-6">
-        <Label htmlFor="behavior" className="text-lg">When is your audience most active? (Optional)</Label>
-        <Textarea
-          name="behavior"
-          id="behavior"
-          placeholder="e.g., weekday mornings, weekend evenings"
-          className="w-full h-20 mt-2 p-2 border border-gray-300 resize-none rounded-lg bg-gray-100"
-          value={step3Data.behavior}
-          onChange={handleStep3TextChange('behavior')}
-        />
-      </div>
+      
       <div className="mb-6">
         <Label htmlFor="dataUpload" className="text-lg">Upload past campaign data (Optional)</Label>
         <Input
           type="file"
           name="dataUpload"
           id="dataUpload"
-          accept=".csv,.pdf,.txt"
+          accept=".csv"
           className="w-full h-14 mt-2 p-2 border border-gray-300 rounded-lg bg-gray-100"
           onChange={handleFileChange}
+          
         />
-        <p className="text-sm text-gray-500 mt-1">Accepted formats: CSV, PDF, TXT</p>
+        <p className="text-sm text-gray-500 mt-1">Accepted formats: CSV</p>
       </div>
-      <div className="mb-6">
-        <Label htmlFor="frequency" className="text-lg">
-          How often will this campaign run? <span className="text-red-500">*</span>
-        </Label>
-        <Select name="frequency" value={step3Data.frequency} onValueChange={handleStep3SelectChange('frequency')}>
-          <SelectTrigger className="w-full h-14 mt-2 bg-gray-100 p-2 border border-gray-300 rounded-lg">
-            <SelectValue placeholder="Select frequency" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="one-time">One-time send</SelectItem>
-            <SelectItem value="daily">Daily</SelectItem>
-            <SelectItem value="weekly">Weekly</SelectItem>
-            <SelectItem value="monthly">Monthly</SelectItem>
-            <SelectItem value="custom">Custom (specify below)</SelectItem>
-          </SelectContent>
-        </Select>
-        {showErrors && !step3Data.frequency && <p className="text-red-500 text-sm mt-1">This field is required</p>}
-        <Input
-          type="text"
-          name="frequencyCustom"
-          placeholder="e.g., Every 3 days"
-          className="w-full h-12 mt-2 p-2 border border-gray-300 rounded-lg bg-gray-100"
-          value={step3Data.frequencyCustom}
-          onChange={handleStep3InputChange('frequencyCustom')}
+      
+    </div>
+  );
+
+  const renderStep3 = () => (
+    <div className="flex-[6] overflow-y-auto h-full px-10 text-lg flex flex-col items-center justify-center">
+      <h2 className="text-2xl font-bold text-gray-800 mb-4">Step 3: Rickroll Time!</h2>
+      <img
+        src="https://media4.giphy.com/media/v1.Y2lkPTc5MGI3NjExbHpoMHg3aXl3bnlldm9hOTRjcWltanY0Y3ptdG92b3gxcDF0N2NmYSZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/Ju7l5y9osyymQ/giphy.gif"
+        alt="Rick Astley Rickrolling"
+        className="w-full max-w-md h-auto rounded-lg shadow-lg"
+      />
+      <audio autoPlay loop className="hidden">
+        <source
+          src="https://www.myinstants.com/media/sounds/rickroll.mp3"
+          type="audio/mpeg"
         />
-      </div>
-      <div className="mb-6">
-        <Label htmlFor="industry" className="text-lg">What industry or audience segment are you targeting?</Label>
-        <Input
-          type="text"
-          name="industry"
-          id="industry"
-          placeholder="e.g., e-commerce, B2B, healthcare"
-          className="w-full h-14 mt-2 p-2 border border-gray-300 rounded-lg bg-gray-100"
-          value={step3Data.industry}
-          onChange={handleStep3InputChange('industry')}
-        />
-      </div>
-      <div className="mb-6">
-        <Label className="text-lg">Enable A/B testing for send times?</Label>
-        <div className="mt-2 flex items-center gap-2">
-          <Checkbox
-            id="abTest"
-            name="abTest"
-            className="w-5 h-5 border border-gray-400 rounded-sm bg-white data-[state=checked]:bg-blue-500"
-            checked={step3Data.abTest}
-            onCheckedChange={handleCheckboxChange('abTest')}
-          />
-          <Label htmlFor="abTest">Yes, split my audience to test two send times</Label>
-        </div>
-      </div>
+        Your browser does not support the audio element.
+      </audio>
+      <p className="text-gray-600 mt-4">Never gonna give you up, never gonna let you down!</p>
     </div>
   );
 
@@ -539,19 +345,20 @@ function EmailPage() {
     setCurrentStep((prevStep) => {
       const newStep = prevStep + direction;
       if (newStep < 1) return 1;
+      if (newStep == 3){
+        sendTimeOptim();
+      }
+
       if (newStep > 3) return 3;
       return newStep;
     });
-    setShowErrors(false); // Reset error visibility on step change
+    setShowErrors(false);
   };
 
   const goToStep = (step: number) => {
     setCurrentStep(step);
-    setShowErrors(false); // Reset error visibility on step change
+    setShowErrors(false); 
   };
-
-  const subjectRef = useRef<HTMLTextAreaElement>(null);
-  const bodyRef = useRef<HTMLTextAreaElement>(null);
 
   const generateTemplate = async () => {
     setShowErrors(true);
@@ -567,44 +374,47 @@ function EmailPage() {
         body: JSON.stringify(forlgata),
       });
       const data = await response.json();
-      if (subjectRef.current && bodyRef.current) {
-        subjectRef.current.value = data.Subject;
-        bodyRef.current.value = data.Body;
-      }
+      setEmailSubject(data.Subject);
+      setEmailBody(data.Body)
+      setIsEmailGenerated(true)
+      // if (subjectRef.current && bodyRef.current) {
+      //   subjectRef.current.value = data.Subject;
+      //   bodyRef.current.value = data.Body;
+      //   setIsEmailGenerated(true);
+      // }
     } catch (error) {
       console.error('Error fetching email data:', error);
+      setIsEmailGenerated(false);
+
     }
   };
 
-  const addStep2Data = async () => {
-    setShowErrors(true);
-    if (!isStep2Valid()) {
-      console.error('Please fill all required fields in Step 2');
-      return;
-    }
-
+  const sendTimeOptim = async () => {
     try {
-      const response = await fetch('http://localhost:8000/api/additional-info-template', {
-        method: 'POST',
+      const response = await fetch('http://localhost:8000/api/sto', {
+        method: 'GET',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(step2Data),
       });
+      if (!response.ok) {
+        throw new Error('Failed to trigger Step 3 endpoint');
+      }
       const data = await response.json();
-      console.log('Step 2 data added:', data);
+      console.log('Step 3 GET request successful:', data);
     } catch (error) {
-      console.error('Error adding Step 2 data:', error);
+      console.error('Error with Step 3 GET request:', error);
     }
-  };
+  }
 
-  const addStep3Timings = async () => {
-    setShowErrors(true);
-    if (!isStep3Valid()) {
-      console.error('Please fill all required fields in Step 3');
+  const addStep2Timings = async () => {
+    if (!isStep2Valid()) {
+      console.log(step2Data)
+      console.error('Please fill all required fields in Step 2');
+      setShowErrors(true);
       return;
     }
 
     const formData = new FormData();
-    Object.entries(step3Data).forEach(([key, value]) => {
+    Object.entries(step2Data).forEach(([key, value]) => {
       if (key === 'dataUpload' && value) {
         formData.append(key, value);
       } else if (key === 'timezones') {
@@ -620,9 +430,10 @@ function EmailPage() {
         body: formData,
       });
       const data = await response.json();
-      console.log('Step 3 timings added:', data);
+      console.log('Step 2 timings added:', data);
+      setIsTimeDataAdded(true);
     } catch (error) {
-      console.error('Error adding Step 3 timings:', error);
+      console.error('Error adding Step 2 timings:', error);
     }
   };
 
@@ -643,12 +454,6 @@ function EmailPage() {
             className={`w-16 h-16 rounded-full hover:bg-[#A3A4B3] flex items-center justify-center p-0 ${currentStep === 2 ? 'bg-[#DCDDEB] text-black' : 'bg-[#494965] text-black'}`}
             onClick={() => goToStep(2)}
           >
-            {FaDatabase({ className: "!w-[40%] !h-[40%]" })}
-          </Button>
-          <Button
-            className={`w-16 h-16 rounded-full hover:bg-[#A3A4B3] flex items-center justify-center p-0 ${currentStep === 3 ? 'bg-[#DCDDEB] text-black' : 'bg-[#494965] text-black'}`}
-            onClick={() => goToStep(3)}
-          >
             {FaTelegramPlane({ className: "!w-[40%] !h-[40%]" })}
           </Button>
         </div>
@@ -661,13 +466,16 @@ function EmailPage() {
             {currentStep === 2 && renderStep2()}
             {currentStep === 3 && renderStep3()}
             <div className="flex justify-center mt-6 overflow-x-scroll">
-              <Button
-                className="text-lg lg:text-lg bg-[#0F142E] text-white p-4 md:p-6 mr-1 lg:mr-2 xl:py-[1.5rem] xl:px-[1rem] rounded-full hover:bg-[#434C7B]"
-                onClick={() => handleNextStep(-1)}
-              >
-                {FaArrowLeft({})}
-                <span className="hidden xl:inline xl:ml-2">Back</span>
-              </Button>
+              {currentStep !== 1 && (
+                <Button
+                  className="text-lg lg:text-lg bg-[#0F142E] text-white p-4 md:p-6 mr-1 lg:mr-2 xl:py-[1.5rem] xl:px-[1rem] rounded-full hover:bg-[#434C7B]"
+                  onClick={() => handleNextStep(-1)}
+                >
+                  {FaArrowLeft({})}
+                  <span className="hidden xl:inline xl:ml-2">Back</span>
+                </Button>
+              )}
+              
               {currentStep === 1 && (
                 <Button
                   className="text-lg lg:text-lg bg-[#0F142E] text-white p-4 md:p-6 mr-1 lg:mr-2 xl:py-[1.5rem] xl:px-[1rem] rounded-full hover:bg-[#434C7B]"
@@ -679,26 +487,22 @@ function EmailPage() {
               {currentStep === 2 && (
                 <Button
                   className="text-lg lg:text-lg bg-[#0F142E] text-white p-4 md:p-6 mr-1 lg:mr-2 xl:py-[1.5rem] xl:px-[1rem] rounded-full hover:bg-[#434C7B]"
-                  onClick={addStep2Data}
-                >
-                  <span className="ml-2">Add Data</span>
-                </Button>
-              )}
-              {currentStep === 3 && (
-                <Button
-                  className="text-lg lg:text-lg bg-[#0F142E] text-white p-4 md:p-6 mr-1 lg:mr-2 xl:py-[1.5rem] xl:px-[1rem] rounded-full hover:bg-[#434C7B]"
-                  onClick={addStep3Timings}
+                  onClick={addStep2Timings}
                 >
                   <span className="ml-2">Add Timings</span>
                 </Button>
               )}
-              <Button
-                className="text-lg lg:text-lg bg-[#0F142E] text-white p-4 md:p-6 xl:py-[1.5rem] xl:px-[1rem] rounded-full hover:bg-[#434C7B]"
-                onClick={() => handleNextStep(1)}
-              >
-                <span className="hidden xl:inline xl:mr-2">Next</span>
-                {FaArrowRight({})}
-              </Button>
+              {currentStep !== 3 && (
+                <Button
+                  className="text-lg lg:text-lg bg-[#0F142E] text-white p-4 md:p-6 xl:py-[1.5rem] xl:px-[1rem] rounded-full hover:bg-[#434C7B]"
+                  onClick={() => handleNextStep(1)}
+                  disabled={(currentStep === 1 && !isEmailGenerated) || (currentStep === 2 && !isTimeDataAdded) }
+                >
+                  <span className="hidden xl:inline xl:mr-2">Next</span>
+                  {FaArrowRight({})}
+                </Button>
+              )}
+              
             </div>
           </div>
         </div>
@@ -707,13 +511,15 @@ function EmailPage() {
             className="text-lg overflow-y-hidden w-full h-[8%] p-5 pl-10 bg-white rounded-t-lg resize-none"
             name="template_subject"
             placeholder="Subject"
-            ref={subjectRef}
+            // ref={subjectRef}
+            value={emailSubject}
           />
           <Textarea
             className="text-lg w-full h-[82%] pl-10 pt-5 bg-white rounded-b-lg resize-none"
             name="template_body"
             placeholder="Body"
-            ref={bodyRef}
+            // ref={bodyRef}
+            value={emailBody}
           />
         </div>
       </div>
