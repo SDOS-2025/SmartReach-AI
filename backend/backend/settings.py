@@ -223,11 +223,14 @@ RAISE_EXCEPTIONS = True
 
 # Session Settings
 SESSION_ENGINE = 'django.contrib.sessions.backends.db'
-SESSION_COOKIE_SECURE = False
-SESSION_COOKIE_HTTPONLY = True
-SESSION_COOKIE_SAMESITE = None
-CSRF_COOKIE_SAMESITE = None
+SESSION_COOKIE_SECURE = True  # Keep secure for HTTPS
+SESSION_COOKIE_HTTPONLY = True  # Prevent JavaScript access
+SESSION_COOKIE_SAMESITE = 'Lax'  # Allow session cookies to be sent with same-site requests
+CSRF_COOKIE_SECURE = True  # Secure for CSRF over HTTPS
+CSRF_COOKIE_HTTPONLY = True  # Prevent JavaScript access to CSRF cookies
+CSRF_COOKIE_SAMESITE = 'Lax'  # SameSite protection for CSRF
 SESSION_COOKIE_NAME = 'sessionid'
+SESSION_COOKIE_AGE = 86400  # 1 day expiry
 
 # Social Auth Settings
 SOCIAL_AUTH_GOOGLE_OAUTH2_KEY = GOOGLE_OAUTH2_CLIENT_ID

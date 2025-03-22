@@ -22,7 +22,7 @@ from .LLM_template_generator import TemplateGenerator
 from django.http import JsonResponse, HttpResponseRedirect
 from django.utils.timezone import now
 from .models import EmailLog
-
+from django.core.cache import cache
 
 import logging
 logger = logging.getLogger(__name__)
@@ -38,13 +38,21 @@ def login_view(request):
     username = request.data.get('username')
     password = request.data.get('password')
 
-    print(username,password)
 
     user = User.objects.filter(username=username).first()
     if user is None:
         return Response({'error': 'Invalid username'}, status=400)
 
     request.session['user_id'] = user.user_id
+    org_id = Organization.objects.filter(org_id=user).first()
+    if org_id:
+        request.session['org_id'] = org_id.org_id_id
+    else:
+        request.session['org_id'] = None
+
+    cache.set(f'user_id', request.session['user_id'], timeout=3600)
+    cache.set(f'org_id', request.session['org_id'], timeout=3600)
+
     return Response({'message': 'Login successful'})
 
 
@@ -98,7 +106,13 @@ def convert_ist_to_utc(ist_date, ist_time):
 
 @api_view(['GET'])
 def send_time_optim(request):
-    return Response({'message': 'gotcha'})
+    org_id = cache.get('org_id')
+    user_id = cache.get('user_id')
+    campaign_id = cache.get('campaign_id')
+
+    campaign = CampaignDetails.objects.get(campaign_id=campaign_id)
+
+    return Response({'message': 'Send time optimization successful'})
 
 @csrf_exempt
 def sto_view(request):
@@ -402,6 +416,11 @@ def generate_template(request):
     template_generator = TemplateGenerator(**response_data)
     template = template_generator.generate()
     request.session['generated_template'] = template
+    org_id = cache.get('org_id')
+    user_id = cache.get('user_id')
+
+    cache.set('Template', template, timeout=3600)    
+
     if not template:
         return Response(
             {'Subject':'Internal Server Error', 'Body': 'Error generating template'},
@@ -457,30 +476,59 @@ from io import TextIOWrapper
 def generate_template_send_time(request):
     start_date = request.data.get('startDate')
     start_time = request.data.get('startTime')
-    end_date = request.data.get('endTime')
-    # Access the uploaded file from request.FILES
+    end_date = request.data.get('endDate')
+
+    print(start_date, start_time, end_date)
+    print(cache.get('org_id'))
+    print(cache.get('user_id'))
+    print(cache.get('Template'))
+    campaign_details = {}
+
+    campaign_start_date = datetime.strptime(f"{start_date} {start_time}", '%Y-%m-%d %H:%M')
+    campaign_start_time = datetime.strptime(f"{start_date} {start_time}", '%Y-%m-%d %H:%M')
+    campaign_end_date = datetime.strptime(f"{end_date} 23:59", '%Y-%m-%d %H:%M')
+
     uploaded_file = request.FILES.get('dataUpload')
 
-    # Log the received data for debugging
-    print(f"Start Date: {start_date}")
-    print(f"Start Time: {start_time}")
-    print(f"End Date: {end_date}")
-    print(f"Uploaded File: {uploaded_file}")
+    org_instance = Organization.objects.get(org_id_id=cache.get('org_id'))
 
-    # Process the CSV file if it exists
+    campaign_details = {
+        'org_id': org_instance,
+        'campaign_name': 'Test Campaign',
+        'campaign_description': 'Test Campaign Description',
+        'campaign_start_date': campaign_start_date,
+        'campaign_end_date': campaign_end_date,
+        'campaign_mail_body': cache.get('Template')['Body'],
+        'campaign_mail_subject': cache.get('Template')['Subject'],
+        'send_time': campaign_start_time
+    }
+
+    campaign_object = CampaignDetails.objects.create(**campaign_details)
+    campaign_id = campaign_object.campaign_id
+
+    cache.set('campaign_id', campaign_id, timeout=3600)
+
     if uploaded_file:
-        # Wrap the file in TextIOWrapper to handle it as text (assumes UTF-8 encoding)
         csv_file = TextIOWrapper(uploaded_file, encoding='utf-8')
         reader = csv.DictReader(csv_file)
         
-        # Example: Print each row of the CSV
-        for row in reader:
-            print(row)  # row is a dict with column headers as keys
+        data = [row for row in reader]
 
-        # Reset file pointer to beginning if you need to reuse it
         csv_file.seek(0)
 
-        # Example response (modify as needed)
+        org_id = cache.get('org_id')
+        campaign_id = cache.get('campaign_id')
+
+        for row in data:
+            row['org_id'] = org_instance
+
+            email = row.get('email')
+
+            user = CompanyUser.objects.all().filter(email=email).first()
+
+            if not user:
+                CompanyUser.objects.create(**row)
+
         response_data = {
             'message': 'Timings and file received successfully',
             'start_date': start_date,
