@@ -114,6 +114,22 @@ def send_time_optim(request):
 
     return Response({'message': 'Send time optimization successful'})
 
+
+@api_view(['GET'])
+def user_login_details(request):
+    user_id = cache.get('user_id')
+
+    if user_id is None:
+        return Response({'error': 'User not logged in'}, status=400)
+        
+    user = User.objects.get(user_id=user_id)
+
+    return Response({
+        'username': user.username,
+        'email': user.email
+    })
+
+
 @csrf_exempt
 def sto_view(request):
     if request.method == "POST":
