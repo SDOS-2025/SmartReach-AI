@@ -13,7 +13,7 @@ def send_scheduled_email(self, organization_id, user_email, subject, message):
     try:
         # Fetch organization details
         organization = Organization.objects.get(org_id_id=organization_id)
-        tracking_url = f"http://smartreachai.social/api/track-click?email={user_email}&organization={organization_id}"
+        tracking_url = f"http://localhost:8000/api/track-click?email={user_email}&organization={organization_id}"
         user_email_ = user_email
         # TEXT fallback version
         text_body = f"{message}\n\nClick here to learn more: {tracking_url}"

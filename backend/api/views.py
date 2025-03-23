@@ -136,8 +136,8 @@ def send_time_optim(request):
         # if not engagement:
         #     continue  # Skip users with no engagement data
         print(user.first_name)
-        message = message.replace("[Your Company/Project Name]", "SmartReach")
-        message_ = message.replace("[Recipient’s Name]", user.first_name)
+        message = message.replace("[company_name]", "SmartReach")
+        message_ = message.replace("[recipient_name]", user.first_name)
         
         print(message_)
         user_email = user.email
@@ -499,7 +499,7 @@ logger = logging.getLogger(__name__)
 def track_email_click(request):
     user_email = request.GET.get("email")
     organization_id = request.GET.get("organization")
-    redirect_url = "https://google.com"  # Redirect to your content page
+    redirect_url = "https://smartreachai.social"  # Redirect to your content page
 
     if user_email and organization_id:
         try:
@@ -597,3 +597,9 @@ def generate_template_send_time(request):
         return JsonResponse(response_data, status=200)
 
     return JsonResponse({'error': 'Invalid request method'}, status=400)
+
+
+def get_campaigns(request):
+    org_id = cache.get('org_id')
+    campaigns = CampaignDetails.objects.filter(org_id_id=org_id).values('campaign_name', 'campaign_description') # Fetch name and description
+    return JsonResponse({'campaigns': list(campaigns)})

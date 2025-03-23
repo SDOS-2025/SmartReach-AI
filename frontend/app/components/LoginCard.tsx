@@ -63,7 +63,7 @@ const LoginCard = ({ view, setView }: LoginCardProps) => {
       const data = await response.json();
       console.log('Login response:', data);
       if (data.message === 'Login successful') {
-        window.location.href = '/write-email';
+        window.location.href = '/home';
       }
     } catch (error) {
       console.error('Error during login:', error);
