@@ -13,18 +13,20 @@ import { useRef } from 'react';
 function EmailPage() {
   const [currentStep, setCurrentStep] = useState(1);
   const [forlgata, setForlgata] = useState({
-    category: '',
-    tone: '',
-    contentType: '',
-    companyDescription: '',
-    emailPurpose: '',
-    audienceType: '',
-    preferredLength: '',
-    cta: '',
+    category: 'ecommerce',
+    tone: 'friendly',
+    contentType: 'promotional',
+    companyDescription: 'This is for test',
+    emailPurpose: 'This is for test',
+    audienceType: 'subscribedCustomers',
+    preferredLength: 'short',
+    cta: 'buyNow',
     customCta: '',
-    emailStructure: '',
+    emailStructure: 'promotional',
   });
   const [step2Data, setStep2Data] = useState({
+    campaignName: '',
+    campaignDesc: '',
     startDate: '',
     startTime: '',
     endDate: '',
@@ -37,15 +39,36 @@ function EmailPage() {
   const [emailSubject, setEmailSubject] = useState('');
   const [emailBody, setEmailBody] = useState('');
 
+  const [isLoading, setIsLoading] = useState(false);
+  const [loadingTime, setLoadingTime] = useState(0);
+
   const handleSelectChange = (field: string) => (value: string) => {
     setForlgata((prev) => ({ ...prev, [field]: value }));
   };
 
   const handleTextChange = (field: string) => (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    let text = e.target.value;
+    let words = text.trim().split(/\s+/); // Split by whitespace to count words
+
+    if (words.length > 100) {
+      text = words.slice(0, 100).join(" "); // Keep only the first 100 words
+    }
+
     setForlgata((prev) => ({ ...prev, [field]: e.target.value }));
   };
 
   const handleStep2InputChange = (field: string) => (e: React.ChangeEvent<HTMLInputElement>) => {
+    setStep2Data((prev) => ({ ...prev, [field]: e.target.value }));
+  };
+
+  const handleStep2TextChange = (field: string) => (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    let text = e.target.value;
+    let words = text.trim().split(/\s+/); // Split by whitespace to count words
+
+    if (words.length > 100) {
+      text = words.slice(0, 100).join(" "); // Keep only the first 100 words
+    }
+
     setStep2Data((prev) => ({ ...prev, [field]: e.target.value }));
   };
 
@@ -73,6 +96,8 @@ function EmailPage() {
 
   const isStep2Valid = () => {
     return (
+      step2Data.campaignName.trim() !== '' &&
+      step2Data.campaignDesc.trim() !== '' &&
       step2Data.startDate.trim() !== '' &&
       step2Data.startTime.trim() !== '' &&
       step2Data.endDate.trim() != ''
@@ -87,7 +112,7 @@ function EmailPage() {
         </Label>
         <Select name="category" value={forlgata.category} onValueChange={handleSelectChange('category')}>
           <SelectTrigger className="w-full h-14 mt-2 bg-gray-100 p-2 border border-gray-300 rounded-lg">
-            <SelectValue placeholder="Choose" />
+            <SelectValue placeholder="Choose"  />
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="ecommerce">E-commerce</SelectItem>
@@ -149,7 +174,6 @@ function EmailPage() {
           id="companyDescription"
           placeholder="A short introduction about the brand"
           className="w-full h-20 mt-2 p-2 border border-gray-300 rounded-lg bg-gray-100 resize-none"
-          maxLength={100}
           value={forlgata.companyDescription}
           onChange={handleTextChange('companyDescription')}
           required
@@ -259,6 +283,44 @@ function EmailPage() {
   const renderStep2 = () => (
     <div className="flex-[6] overflow-y-auto h-full px-10 text-lg">
       <div className="mb-6">
+        <Label htmlFor="campaignName" className="text-lg">
+          What is the campaign name ?<span className="text-red-500">*</span>
+        </Label>
+        <div className="mt-2 flex gap-4">
+          <Input
+            type="text"
+            name="campaignName"
+            id="campaignName"
+            maxLength={100}
+            className="w-1/2 h-14 p-2 border border-gray-300 rounded-lg bg-gray-100"
+            value={step2Data.campaignName}
+            onChange={handleStep2InputChange('campaignName')}
+            required
+          />
+          {showErrors && !step2Data.campaignName && <p className="text-red-500 text-sm mt-1">campaignName is required</p>}
+          
+        </div>
+      </div>
+      <div className="mb-6">
+        <Label htmlFor="campaignDesc" className="text-lg">
+          Enter the campaign description <span className="text-red-500">*</span>
+        </Label>
+        <div className="mt-2 flex gap-4">
+          <Textarea
+            name="campaignDesc"
+            id="campaignDesc"
+            placeholder="A short introduction about the campaign"
+            className="w-full h-20 mt-2 p-2 border border-gray-300 rounded-lg bg-gray-100 resize-none"
+            value={step2Data.campaignDesc}
+            onChange={handleStep2TextChange('campaignDesc')}
+            required
+          />
+          {showErrors && !step2Data.campaignDesc && <p className="text-red-500 text-sm mt-1">campaignDesc is required</p>}
+          
+        </div>
+      </div>
+
+      <div className="mb-6">
         <Label htmlFor="schedule" className="text-lg">
           When would you like to start your campaign? <span className="text-red-500">*</span>
         </Label>
@@ -367,6 +429,13 @@ function EmailPage() {
       return;
     }
 
+    setIsLoading(true);
+    const startTime = Date.now();
+    let timerInterval = setInterval(() => {
+      const elapsedTime = Math.floor((Date.now() - startTime) / 1000);
+      setLoadingTime(elapsedTime);
+    }, 1000);
+
     try {
       const response = await fetch('http://localhost:8000/api/generate-template', {
         method: 'POST',
@@ -375,17 +444,14 @@ function EmailPage() {
       });
       const data = await response.json();
       setEmailSubject(data.Subject);
-      setEmailBody(data.Body)
-      setIsEmailGenerated(true)
-      // if (subjectRef.current && bodyRef.current) {
-      //   subjectRef.current.value = data.Subject;
-      //   bodyRef.current.value = data.Body;
-      //   setIsEmailGenerated(true);
-      // }
+      setEmailBody(data.Body);
+      setIsEmailGenerated(true);
     } catch (error) {
       console.error('Error fetching email data:', error);
       setIsEmailGenerated(false);
-
+    } finally {
+      clearInterval(timerInterval);
+      setIsLoading(false);
     }
   };
 
@@ -521,6 +587,16 @@ function EmailPage() {
             // ref={bodyRef}
             value={emailBody}
           />
+          {isLoading && (
+            <div className="absolute inset-0 flex items-center justify-center bg-gray-900 bg-opacity-50">
+              <div className="flex flex-col items-center gap-4 p-6 bg-white rounded-lg shadow-lg">
+                <div className="w-12 h-12 border-4 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
+                <p className="text-lg text-gray-700">
+                  Generating... {loadingTime}s
+                </p>
+              </div>
+            </div>
+          )}
         </div>
       </div>
     </div>
