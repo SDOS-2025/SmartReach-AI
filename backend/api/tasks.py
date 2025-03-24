@@ -20,7 +20,7 @@ def send_scheduled_email(self, organization_id, user_email, subject, message):
 
         # HTML-formatted version of the message
         paragraphs = message.split('\n\n')  # preserve paragraph spacing
-        html_message = ''.join(f'<p>{p.replace("\n", "<br>")}</p>' for p in paragraphs)
+        html_message = ''.join('<p>' + p.replace("\n", "<br>") + '</p>' for p in paragraphs)
 
         # Full HTML body with the tracking link
         html_body = f"""

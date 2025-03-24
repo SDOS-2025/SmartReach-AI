@@ -535,11 +535,9 @@ def generate_template_send_time(request):
     start_date = request.data.get('startDate')
     start_time = request.data.get('startTime')
     end_date = request.data.get('endDate')
+    campaign_name = request.data.get('campaignName')
+    campaign_description = request.data.get('campaignDesc')
 
-    print(start_date, start_time, end_date)
-    print(cache.get('org_id'))
-    print(cache.get('user_id'))
-    print(cache.get('Template'))
     campaign_details = {}
 
     campaign_start_date = datetime.strptime(f"{start_date} {start_time}", '%Y-%m-%d %H:%M')
@@ -552,14 +550,16 @@ def generate_template_send_time(request):
 
     campaign_details = {
         'org_id': org_instance,
-        'campaign_name': 'Test Campaign',
-        'campaign_description': 'Test Campaign Description',
+        'campaign_name': campaign_name,
+        'campaign_description': campaign_description,
         'campaign_start_date': campaign_start_date,
         'campaign_end_date': campaign_end_date,
         'campaign_mail_body': cache.get('Template')['Body'],
         'campaign_mail_subject': cache.get('Template')['Subject'],
         'send_time': campaign_start_time
     }
+
+    print(campaign_details)
 
     campaign_object = CampaignDetails.objects.create(**campaign_details)
     campaign_id = campaign_object.campaign_id
