@@ -7,8 +7,6 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { FaArrowRight, FaArrowLeft, FaQuestion, FaDatabase, FaTelegramPlane } from 'react-icons/fa';
 import { Input } from '@/components/ui/input';
-import { Checkbox } from '@radix-ui/react-checkbox';
-import { useRef } from 'react';
 
 function EmailPage() {
   const [currentStep, setCurrentStep] = useState(1);
@@ -24,7 +22,15 @@ function EmailPage() {
     customCta: '',
     emailStructure: 'promotional',
   });
-  const [step2Data, setStep2Data] = useState({
+  const [step2Data, setStep2Data] = useState<{
+    campaignName: string;
+    campaignDesc: string;
+    startDate: string;
+    startTime: string;
+    endDate: string;
+    dataUpload: File | null; // ✅ Explicit type for files
+
+  }>({
     campaignName: '',
     campaignDesc: '',
     startDate: '',
@@ -260,7 +266,7 @@ function EmailPage() {
             onChange={handleTextChange('customCta')}
             required
           />
-          {showErrors && !forlgata.customCta && <p className="text-red-500 text-sm mt-1">This field is required when "Other" is selected</p>}
+          {showErrors && !forlgata.customCta && <p className="text-red-500 text-sm mt-1">This field is required when {"Other"} is selected</p>}
         </div>
       )}
       <div className="mb-4">
@@ -481,12 +487,10 @@ function EmailPage() {
 
     const formData = new FormData();
     Object.entries(step2Data).forEach(([key, value]) => {
-      if (key === 'dataUpload' && value) {
+      if (key === 'dataUpload' && value instanceof File) {
         formData.append(key, value);
-      } else if (key === 'timezones') {
-        formData.append(key, JSON.stringify(value));
-      } else {
-        formData.append(key, value);
+      } else if (typeof value === 'string') {
+        formData.append(key, value); 
       }
     });
 
