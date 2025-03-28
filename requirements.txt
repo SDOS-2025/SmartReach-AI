@@ -1,4 +1,5 @@
 celery
+redis
 django
 django-cors-headers
 djangorestframework
