@@ -96,8 +96,7 @@ class CompanyUserEngagement(models.Model):
     org_id = models.ForeignKey(Organization, on_delete=models.CASCADE, related_name="org_user_engagement", to_field="org_id")
     send_time = models.DateTimeField()
     open_time = models.DateTimeField(null=True, blank=True)
-    click_rate = models.FloatField()
-    open_rate = models.FloatField()
+
     engagement_delay = models.FloatField()
 
     class Meta:

@@ -23,7 +23,7 @@ from django.http import JsonResponse, HttpResponseRedirect
 from django.utils.timezone import now
 from .models import EmailLog
 from django.core.cache import cache
-
+from rest_framework.authtoken.models import Token
 import logging
 logger = logging.getLogger(__name__)
 
@@ -38,22 +38,27 @@ def login_view(request):
     username = request.data.get('username')
     password = request.data.get('password')
 
-
+    # Try to get the user manually
     user = User.objects.filter(username=username).first()
+
     if user is None:
         return Response({'error': 'Invalid username'}, status=400)
 
+
+    # Session + Cache setup (optional)
     request.session['user_id'] = user.user_id
-    org_id = Organization.objects.filter(org_id=user).first()
-    if org_id:
-        request.session['org_id'] = org_id.org_id_id
-    else:
-        request.session['org_id'] = None
+    org = Organization.objects.filter(org_id=user).first()
+    request.session['org_id'] = org.org_id_id if org else None
+    cache.set('user_id', user.user_id, timeout=3600)
+    cache.set('org_id', request.session['org_id'], timeout=3600)
 
-    cache.set(f'user_id', request.session['user_id'], timeout=3600)
-    cache.set(f'org_id', request.session['org_id'], timeout=3600)
+    # 🔑 Create or fetch the token manually
+    token, _ = Token.objects.get_or_create(user=user)
 
-    return Response({'message': 'Login successful'})
+    return Response({
+        'message': 'Login successful',
+        'token': token.key
+    })
 
 
 @api_view(['GET'])
@@ -601,5 +606,26 @@ def generate_template_send_time(request):
 
 def get_campaigns(request):
     org_id = cache.get('org_id')
-    campaigns = CampaignDetails.objects.filter(org_id_id=org_id).values('campaign_name', 'campaign_description') # Fetch name and description
+    campaigns = CampaignDetails.objects.filter(org_id_id=org_id).values('campaign_id','campaign_name', 'campaign_description') # Fetch name and description
     return JsonResponse({'campaigns': list(campaigns)})
+
+
+
+def get_campaign_details(request):
+    org_id = cache.get('org_id')
+    campaign_id = request.GET.get('campaign_id')
+
+    campaign_meta_details = CampaignDetails.objects.filter(
+        org_id_id=org_id,
+        campaign_id=campaign_id
+    ).values('campaign_start_date', 'campaign_end_date', 'campaign_name', 'campaign_description')
+
+    campaign_details = CampaignStatistics.objects.filter(
+        org_id_id=org_id,
+        campaign_id=campaign_id
+    ).values('user_click_rate', 'user_open_rate', 'user_engagement_delay', 'user_engagement_rate')
+
+    return JsonResponse({
+        'campaign_details': list(campaign_details),
+        'campaign_meta_details': list(campaign_meta_details)
+    })

@@ -56,15 +56,18 @@ const LoginCard = ({ view, setView }: LoginCardProps) => {
         body: JSON.stringify(requestBody),
       });
       if (!response.ok) {
+        console.log("Status Code:", response.status);
         const errorData = await response.json();
         console.error('Login error:', errorData);
         return;
       }
       const data = await response.json();
       console.log('Login response:', data);
-      if (data.message === 'Login successful') {
+      if (data.message === 'Login successful' && data.token) {
+        localStorage.setItem("authToken", data.token); // Save token for auth state
         window.location.href = '/home';
       }
+      
     } catch (error) {
       console.error('Error during login:', error);
     }

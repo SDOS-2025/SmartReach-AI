@@ -15,7 +15,8 @@ from .views import (
     generate_template_send_time,
     send_time_optim,
     user_login_details,
-    get_campaigns
+    get_campaigns,
+    get_campaign_details
 
 )
 
@@ -35,7 +36,8 @@ urlpatterns = [
     path('send-time-instructions-template', generate_template_send_time),
     path('sto', send_time_optim),
     path('user-login-details', user_login_details),
-    path('campaigns',get_campaigns)
+    path('campaigns',get_campaigns),
+    path('get-campaign-details',get_campaign_details)
 
 
 ]

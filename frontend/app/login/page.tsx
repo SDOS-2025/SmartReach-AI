@@ -11,7 +11,7 @@ function LoginPage() {
   return (
     <div className="flex flex-col justify-start bg-white w-screen h-screen">
       <div className="h-20 flex-none">
-        <NavigationMenu />
+        <NavigationMenu isLoggedIn={false}/>
       </div>
       <div className="flex flex-auto flex-col md:flex-row">
         <div className="max-h py-4 md:h-[calc(100vh-5rem)] w-full md:overflow-y-scroll md:w-3/5 flex-none flex justify-center">

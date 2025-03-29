@@ -7,9 +7,31 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { FaArrowRight, FaArrowLeft, FaQuestion, FaDatabase, FaTelegramPlane } from 'react-icons/fa';
 import { Input } from '@/components/ui/input';
+import React, { useEffect } from 'react';
+import { useRouter } from 'next/navigation';
+
 
 function EmailPage() {
+  const router = useRouter();
+  useEffect(() => {
+    const token = localStorage.getItem("authToken");
+    if (!token) {
+      router.push("/login");
+    }
+  }, []);
+  
+  
   const [currentStep, setCurrentStep] = useState(1);
+  useEffect(() => {
+    if (currentStep === 3) {
+      const timeout = setTimeout(() => {
+        alert("Campaign scheduled successfully!");
+        router.push("/home");
+      }, 3000);
+  
+      return () => clearTimeout(timeout);
+    }
+  }, [currentStep]);
   const [forlgata, setForlgata] = useState({
     category: 'ecommerce',
     tone: 'friendly',
@@ -510,7 +532,7 @@ function EmailPage() {
   return (
     <div className="flex flex-col justify-start w-screen h-screen">
       <div className="h-20 flex-none">
-        <NavigationMenu />
+      <NavigationMenu />
       </div>
       <div className="flex flex-auto flex-col lg:flex-row">
         <div className="w-screen lg:w-[6rem] bg-[#0F142E] flex lg:flex-col justify-center items-center py-5 space-x-6 lg:space-y-12 lg:space-x-0">
