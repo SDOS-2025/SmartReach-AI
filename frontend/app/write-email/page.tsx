@@ -614,15 +614,26 @@ function EmailPage() {
             value={emailBody}
           />
           {isLoading && (
-            <div className="absolute inset-0 flex items-center justify-center bg-gray-900 bg-opacity-50">
-              <div className="flex flex-col items-center gap-4 p-6 bg-white rounded-lg shadow-lg">
-                <div className="w-12 h-12 border-4 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
-                <p className="text-lg text-gray-700">
-                  Generating... {loadingTime}s
-                </p>
-              </div>
-            </div>
-          )}
+  <div className="fixed inset-0 z-50 flex items-center justify-center bg-gray-900 bg-opacity-70 backdrop-blur-sm transition-opacity">
+    <div className="flex flex-col items-center gap-5 p-8 bg-white dark:bg-gray-800 rounded-xl shadow-2xl transform transition-all">
+      <div className="relative w-16 h-16">
+        {/* Outer spinner */}
+        <div className="absolute inset-0 rounded-full border-4 border-blue-100 dark:border-gray-700"></div>
+        {/* Animated spinner */}
+        <div className="absolute inset-0 rounded-full border-4 border-blue-500 border-t-transparent animate-spin"></div>
+      </div>
+      
+      <div className="text-center">
+        <h3 className="text-lg font-semibold text-gray-800 dark:text-gray-200">
+          Processing Your Request
+        </h3>
+        <p className="mt-1 text-gray-600 dark:text-gray-400">
+          Elapsed time: <span className="font-mono">{loadingTime}s</span>
+        </p>
+      </div>
+    </div>
+  </div>
+)}
         </div>
       </div>
     </div>
