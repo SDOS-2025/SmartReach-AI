@@ -112,7 +112,6 @@ class CampaignStatistics(models.Model):
     user_click_rate = models.FloatField()
     user_open_rate = models.FloatField()
     user_engagement_delay = models.FloatField()
-    user_engagement_rate = models.FloatField()
 
     class Meta:
         db_table = 'campaign_statistics'

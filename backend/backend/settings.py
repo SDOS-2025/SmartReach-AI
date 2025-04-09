@@ -28,7 +28,7 @@ SECRET_KEY = 'django-insecure-2f#z$_md2-tr0gs+z6%4t0^r05$1#*2@6-#pm%$1f@n%mrpzgb
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['smartreachai.social', '172.30.2.113', 'localhost']
+ALLOWED_HOSTS = ['smartreachai.social', '172.30.2.113', 'localhost', '127.0.0.1']
 
 
 # Application definition

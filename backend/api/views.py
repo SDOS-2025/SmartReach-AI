@@ -623,7 +623,7 @@ def get_campaign_details(request):
     campaign_details = CampaignStatistics.objects.filter(
         org_id_id=org_id,
         campaign_id=campaign_id
-    ).values('user_click_rate', 'user_open_rate', 'user_engagement_delay', 'user_engagement_rate')
+    ).values('user_click_rate', 'user_open_rate', 'user_engagement_delay')
 
     return JsonResponse({
         'campaign_details': list(campaign_details),
