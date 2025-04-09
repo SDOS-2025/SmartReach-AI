@@ -18,7 +18,7 @@ from django.contrib.auth import login, authenticate, logout, get_user_model
 from api.models import User, Organization, CompanyUser, CampaignDetails, CompanyUserEngagement, CampaignStatistics
 from .sto_model import get_optimal_send_time
 from .tasks import send_scheduled_email
-from .LLM_template_generator import TemplateGenerator
+from .LLM_template_generator import generate_content
 from django.http import JsonResponse, HttpResponseRedirect
 from django.utils.timezone import now
 from .models import EmailLog
@@ -476,8 +476,7 @@ def generate_template(request):
         'cta': cta,
         'email_structure': email_structure
     }
-    template_generator = TemplateGenerator(**response_data)
-    template = template_generator.generate()
+    template = generate_content(response_data)
     request.session['generated_template'] = template
     org_id = cache.get('org_id')
     user_id = cache.get('user_id')
