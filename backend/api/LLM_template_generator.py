@@ -1,6 +1,5 @@
 from .oauth_settings import gemma_key
 
-print(gemma_key)
 class TemplateGenerator:
     def __init__(self, **data):
         print(data)

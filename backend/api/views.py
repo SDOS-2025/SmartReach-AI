@@ -629,3 +629,32 @@ def get_campaign_details(request):
         'campaign_details': list(campaign_details),
         'campaign_meta_details': list(campaign_meta_details)
     })
+
+def get_chart_data(request):
+    org_id = cache.get('org_id')
+    if not org_id:
+        return JsonResponse({'error': 'Organization not found'}, status=400)
+
+    campaigns = CampaignStatistics.objects.filter(org_id_id=org_id).values(
+        'id',
+        'user_click_rate',
+        'user_open_rate',
+        'user_engagement_delay',
+        'campaign_id_id'
+    )
+
+    chart_data = []
+    for campaign in campaigns:
+        chart_data.append({
+            'id': campaign['id'],
+            'campaignName': CampaignDetails.objects.get(campaign_id=campaign['campaign_id_id']).campaign_name,
+            'start_date': CampaignDetails.objects.get(campaign_id=campaign['campaign_id_id']).campaign_start_date,
+            'clickRate': campaign['user_click_rate'],
+            'openRate': campaign['user_open_rate'],
+            'engagementDelay': campaign['user_engagement_delay'],
+            'campaignId': campaign['campaign_id_id']
+        })
+
+    if not chart_data:
+        return JsonResponse({'error': 'No campaign data found'}, status=404)
+    return JsonResponse({'chart_data': chart_data})

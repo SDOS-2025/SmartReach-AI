@@ -16,7 +16,8 @@ from .views import (
     send_time_optim,
     user_login_details,
     get_campaigns,
-    get_campaign_details
+    get_campaign_details,
+    get_chart_data
 
 )
 
@@ -37,7 +38,7 @@ urlpatterns = [
     path('sto', send_time_optim),
     path('user-login-details', user_login_details),
     path('campaigns',get_campaigns),
-    path('get-campaign-details',get_campaign_details)
-
+    path('get-campaign-details',get_campaign_details),
+    path('get_chart_data', get_chart_data)
 
 ]
