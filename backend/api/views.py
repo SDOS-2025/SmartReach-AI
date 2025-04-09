@@ -474,7 +474,9 @@ def generate_template(request):
         'audience_type': audience_type,
         'preferred_length': preferred_length,
         'cta': cta,
-        'email_structure': email_structure
+        'email_structure': email_structure,
+        "use_rag": False,
+        "vector_db_path": None 
     }
     template = generate_content(response_data)
     request.session['generated_template'] = template

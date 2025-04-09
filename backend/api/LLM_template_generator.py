@@ -2,6 +2,7 @@ from .oauth_settings import gemma_key, server_ip, server_port
 import requests
 
 
+
 def generate_content(data):
     url = f"http://{server_ip}:{server_port}/generate-email"
     response = requests.post(url, json = data)
