@@ -729,7 +729,7 @@ def track_email_open(request):
 
             if engagement:
                 engagement.open_time = now()
-                engagement.engagement_delay = (engagement.click_time - engagement.send_time).total_seconds()
+                engagement.engagement_delay = (engagement.click_time - engagement.open_time).total_seconds()
                 engagement.save()
                 logger.info(f"Email click tracked for {user_email} in organization {organization_id}")
             else:
@@ -742,4 +742,4 @@ def track_email_open(request):
         except Exception as e:
             logger.error(f"Error tracking email click: {str(e)}")
 
-    return HttpResponseRedirect(redirect_url)
+    return JsonResponse({'status':'hottie'})
