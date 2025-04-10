@@ -467,21 +467,28 @@ function EmailPage() {
     </div>
   );
 
-  const handleNextStep = (direction: number) => {
+  const handleNextStep = async (direction) => {
+    // Helper function to wait for a specified time
+    const delay = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+
     setCurrentStep((prevStep) => {
       const newStep = prevStep + direction;
       if (newStep < 1) return 1;
-      if (prevStep == 1 && direction == 1){
-          updateEmail();
-          getEmail();    
+
+      if (prevStep === 1 && direction === 1) {
+        updateEmail();
+        // Use an IIFE to handle the async delay within setState
+        (async () => {
+          await delay(50); // Wait 5 seconds
+          await getEmail();  // Then call getEmail
+        })();
       }
 
-      if (prevStep == 2 && direction == -1){
-        getEmailOriginal();    
+      if (prevStep === 2 && direction === -1) {
+        getEmailOriginal();
       }
 
-
-      if (prevStep == 2 && direction == 1){
+      if (prevStep === 2 && direction === 1) {
         sendTimeOptim();
       }
 
@@ -789,15 +796,15 @@ function EmailPage() {
           
           {currentStep === 2 && (
           <>
-            <div
-              className="text-lg overflow-y-hidden w-full h-[8%] p-5 pl-10 bg-white rounded-t-lg resize-none"
-              dangerouslySetInnerHTML={{ __html: emailSubject }}
-            />
-            <div
-              className="text-lg w-full h-[82%] pl-10 p-5 bg-white rounded-b-lg resize-none overflow-auto"
-              dangerouslySetInnerHTML={{ __html: emailBody }}
-            />
-          </>
+          <div
+            className="text-lg overflow-y-hidden w-full h-[8%] p-5 pl-10 rounded border-b border-gray-400 bg-white rounded-t-lg resize-none"
+            dangerouslySetInnerHTML={{ __html: emailSubject }}
+          />
+          <div
+            className="text-lg w-full h-[82%] pl-10 p-5 bg-white rounded resize-none overflow-auto"
+            dangerouslySetInnerHTML={{ __html: emailBody }}
+          />
+        </>
         )}
           
           {isLoading && (
