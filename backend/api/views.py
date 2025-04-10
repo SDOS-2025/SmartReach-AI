@@ -182,8 +182,11 @@ def send_time_optim(request):
             if optimal_send_time > utc_end_time:
                 optimal_send_time = utc_start_time
         # Schedule email via Celery
+        link = cache.get('company_link')
+        if not link:
+            link = "https://smartreachai.social"
         send_scheduled_email.apply_async(
-            args=[org_id, campaign_id, user_email, subject, personalized_message],
+            args=[org_id, campaign_id, user_email, subject, personalized_message, link],
             eta=optimal_send_time
         )
         scheduled_times[user_email] = str(optimal_send_time)
@@ -501,7 +504,7 @@ def generate_template(request):
     cta = request.data.get('cta')
     # custom_cta = request.data.get('customCta')
     email_structure = request.data.get('emailStructure')
-
+    company_link = request.data.get('companyURL')
     response_data = {
         'category_subcategory': category,
         'tone': tone,
@@ -512,6 +515,7 @@ def generate_template(request):
         'preferred_length': preferred_length,
         'cta': cta,
         'email_structure': email_structure,
+        'company_link': company_link,
         "use_rag": False,
         "vector_db_path": None 
     }
@@ -520,7 +524,8 @@ def generate_template(request):
     org_id = cache.get('org_id')
     user_id = cache.get('user_id')
 
-    cache.set('Template', template, timeout=3600)    
+    cache.set('Template', template, timeout=3600)
+    cache.set('company_link', company_link, timeout=3600)    
 
     if not template:
         return Response(
@@ -542,17 +547,14 @@ logger = logging.getLogger(__name__)
 def track_email_click(request):
     user_email = request.GET.get("email")
     organization_id = request.GET.get("organization")
-    campaign_id = request.GET.get("campaign")  # Optional: if tracking pixel includes campaign
-    redirect_url = "https://smartreachai.social"  # Redirect to your content page
+    campaign_id = request.GET.get("campaign")
+    campaign_link = request.GET.get("company_link")
 
     if user_email and organization_id:
         try:
             # Fetch related instances
             user = CompanyUser.objects.get(email=user_email)
             organization = Organization.objects.get(org_id_id=organization_id)
-            print(user.id)
-            print(organization.org_id_id)
-            print(campaign_id)
             # Find the most recent unclicked engagement for this user/org
             engagement = CompanyUserEngagement.objects.filter(
                 user_id=user.id,
@@ -814,8 +816,11 @@ def get_email(request):
     subject = template['Subject']
     message = f"{template['Body']}\n\n"
 
-    tracking_url = f"https://smartreachai.social"
-    open_url = f"https://smartreachai.social"
+    company_link = cache.get('company_link')
+    if company_link:
+        tracking_url = f"{company_link}"
+    else:
+        tracking_url = "https://smartreachai.social"
 
     name = User.objects.get(user_id=cache.get('user_id')).username
     html_body = f"""
@@ -860,7 +865,6 @@ def get_email(request):
                                 <td style="padding: 20px; text-align: center; font-size: 12px; color: #666666;">
                                     <p style="margin: 0 0 10px;">You’re receiving this email because you subscribed to {name} updates.</p>
                                     <p style="margin: 10px 0 0;">©️ 2025 {name}. All rights reserved.</p>
-                                    <img src="{open_url}" width="1" height="1" alt="" style="display:none;" />
                                 </td>
                             </tr>
                         </table>

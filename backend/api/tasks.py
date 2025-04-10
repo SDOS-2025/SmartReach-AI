@@ -7,7 +7,7 @@ import logging
 logger = logging.getLogger(__name__)
 
 @shared_task(bind=True, autoretry_for=(Exception,), retry_backoff=5, max_retries=3)
-def send_scheduled_email(self, organization_id, campaign_id, user_email, subject, message):
+def send_scheduled_email(self, organization_id, campaign_id, user_email, subject, message, company_link):
     try:
         # Fetch organization and related instances
         organization = Organization.objects.get(org_id_id=organization_id)
@@ -16,7 +16,7 @@ def send_scheduled_email(self, organization_id, campaign_id, user_email, subject
         campaign = CampaignDetails.objects.get(campaign_id=campaign_id)
 
         # Tracking URLs
-        tracking_url = f"http://localhost:8000/api/track-click?email={user_email}&organization={organization_id}&campaign={campaign_id}"
+        tracking_url = f"http://localhost:8000/api/track-click?email={user_email}&organization={organization_id}&campaign={campaign_id}&company_link={company_link}"
         open_url = f"http://localhost:8000/api/track-open?email={user_email}&organization={organization_id}&campaign={campaign_id}"
 
         # Ensure message is a string
@@ -66,7 +66,8 @@ def send_scheduled_email(self, organization_id, campaign_id, user_email, subject
                                 <td style="padding: 20px; text-align: center; font-size: 12px; color: #666666;">
                                     <p style="margin: 0 0 10px;">You’re receiving this email because you subscribed to {name} updates.</p>
                                     <p style="margin: 10px 0 0;">©️ 2025 {name}. All rights reserved.</p>
-                                    <img src="{open_url}" width="1" height="1" alt="" style="display:none;" />
+                                    <!-- Tracking Pixel -->
+                                    <img src="{open_url}" width="1" height="1" border="0" alt="" style="display: block; height: 1px !important; width: 1px !important; border: 0 !important; margin: 0 !important; padding: 0 !important;" />
                                 </td>
                             </tr>
                         </table>
