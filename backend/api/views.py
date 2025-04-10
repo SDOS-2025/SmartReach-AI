@@ -760,6 +760,18 @@ def update_email(request):
         return JsonResponse({'error': 'No email template found'}, status=404)
 
 @api_view(['GET'])
+def get_email_original(request):
+    template = cache.get('Template')
+    if template:
+        subject = template['Subject']
+        message = template['Body']
+
+        return JsonResponse({'Subject': subject, 'Body': message})
+
+    else:
+        return JsonResponse({'error': 'No email template found'}, status=404)
+
+@api_view(['GET'])
 def get_email(request):
     template = cache.get('Template')
     subject = template['Subject']

@@ -21,7 +21,8 @@ from .views import (
     get_chart_data,
     autofill_time,
     update_email,
-    get_email
+    get_email,
+    get_email_original,
 
 )
 
@@ -47,6 +48,7 @@ urlpatterns = [
     path('get_chart_data', get_chart_data),
     path('optimal-start-time',autofill_time),
     path('update-email', update_email),
-    path('get-email/', get_email)
+    path('get-email/', get_email),
+    path('get-email-original/', get_email_original)
 
 ]
