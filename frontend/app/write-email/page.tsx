@@ -33,8 +33,21 @@ function EmailPage() {
       return () => clearTimeout(timeout);
     }
   }, [currentStep]);
-  const [forlgata, setForlgata] = useState({
+  const [forlgata, setForlgata] =useState<{
+    category: string,
+    companyURL: string,
+    tone: string,
+    contentType: string,
+    companyDescription: string,
+    emailPurpose: string,
+    audienceType: string,
+    preferredLength: string,
+    cta: string,
+    customCta: string,
+    emailStructure: string,
+  }>({
     category: 'ecommerce',
+    companyURL: 'smartreachai.social',
     tone: 'friendly',
     contentType: 'promotional',
     companyDescription: 'This is for test',
@@ -45,18 +58,17 @@ function EmailPage() {
     customCta: '',
     emailStructure: 'promotional',
   });
+  
   const [step2Data, setStep2Data] = useState<{
     campaignName: string;
-    companyURL: string
     campaignDesc: string;
     startDate: string;
     startTime: string;
     endDate: string;
-    dataUpload: File | null; // ✅ Explicit type for files
+    dataUpload: File | null; 
 
   }>({
     campaignName: '',
-    companyURL: '',
     campaignDesc: '',
     startDate: '',
     startTime: '',
@@ -79,10 +91,10 @@ function EmailPage() {
 
   const handleTextChange = (field: string) => (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     let text = e.target.value;
-    let words = text.trim().split(/\s+/); // Split by whitespace to count words
+    let words = text.trim().split(/\s+/); 
 
     if (words.length > 100) {
-      text = words.slice(0, 100).join(" "); // Keep only the first 100 words
+      text = words.slice(0, 100).join(" "); 
     }
 
     setForlgata((prev) => ({ ...prev, [field]: e.target.value }));
@@ -128,7 +140,6 @@ function EmailPage() {
   const isStep2Valid = () => {
     return (
       step2Data.campaignName.trim() !== '' &&
-      step2Data.companyURL.trim() !== '' &&
       step2Data.campaignDesc.trim() !== '' &&
       step2Data.startDate.trim() !== '' &&
       step2Data.startTime.trim() !== '' &&
@@ -138,6 +149,24 @@ function EmailPage() {
 
   const renderStep1 = () => (
     <div className="flex-[6] overflow-y-auto h-full px-10 text-lg">
+      <div className="mb-6">
+        <Label htmlFor="companyURL" className="text-lg">
+          What is the company website ?
+        </Label>
+        <div className="mt-2 flex gap-4">
+          <Input
+            type="text"
+            name="companyURL"
+            id="companyURL"
+            maxLength={100}
+            className="w-1/2 h-14 p-2 border border-gray-300 rounded-lg bg-gray-100"
+            value={forlgata.companyURL}
+            onChange={handleTextChange('companyURL')}
+            required
+          />          
+        </div>
+      </div>
+
       <div className="mb-4">
         <Label htmlFor="category" className="text-lg">
           Category & Subcategory <span className="text-red-500">*</span>
@@ -334,25 +363,6 @@ function EmailPage() {
         </div>
       </div>
 
-      <div className="mb-6">
-        <Label htmlFor="companyURL" className="text-lg">
-          What is the company website ?<span className="text-red-500">*</span>
-        </Label>
-        <div className="mt-2 flex gap-4">
-          <Input
-            type="text"
-            name="companyURL"
-            id="companyURL"
-            maxLength={100}
-            className="w-1/2 h-14 p-2 border border-gray-300 rounded-lg bg-gray-100"
-            value={step2Data.companyURL}
-            onChange={handleStep2InputChange('companyURL')}
-            required
-          />
-          {showErrors && !step2Data.companyURL && <p className="text-red-500 text-sm mt-1">companyURL is required</p>}
-          
-        </div>
-      </div>
 
       <div className="mb-6">
         <Label htmlFor="campaignDesc" className="text-lg">
@@ -466,6 +476,11 @@ function EmailPage() {
           getEmail();    
       }
 
+      if (prevStep == 2 && direction == -1){
+        getEmailOriginal();    
+      }
+
+
       if (prevStep == 2 && direction == 1){
         sendTimeOptim();
       }
@@ -557,6 +572,32 @@ function EmailPage() {
     }
   };
 
+
+  const getEmailOriginal = async () => {
+    setIsLoading(true);
+    const startTime = Date.now();
+    let timerInterval = setInterval(() => {
+      const elapsedTime = Math.floor((Date.now() - startTime) / 1000);
+      setLoadingTime(elapsedTime);
+    }, 1000);
+
+    try {
+      const response = await fetch('http://localhost:8000/api/get-email-original/', {
+        method: 'GET',
+      });
+      const data = await response.json();
+      setEmailSubject(data.Subject);
+      setEmailBody(data.Body);
+      setIsEmailGenerated(true);
+    } catch (error) {
+      console.error('Error fetching email data:', error);
+      setIsEmailGenerated(false);
+    } finally {
+      clearInterval(timerInterval);
+      setIsLoading(false);
+    }
+  }
+
   const getEmail = async () => {
     setIsLoading(true);
     const startTime = Date.now();
@@ -568,8 +609,6 @@ function EmailPage() {
     try {
       const response = await fetch('http://localhost:8000/api/get-email/', {
         method: 'GET',
-        // headers: { 'Content-Type': 'application/json' },
-        // body: JSON.stringify(forlgata),
       });
       const data = await response.json();
       setEmailSubject(data.Subject);
