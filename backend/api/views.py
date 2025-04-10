@@ -43,7 +43,7 @@ def login_view(request):
     user = authenticate(request, username=username, password=password)
 
     if user is None:
-        return Response({'error': 'Invalid username'}, status=400)
+        return Response({'error': 'Wrong username or password!'}, status=400)
 
 
     # Session + Cache setup (optional)
@@ -68,18 +68,14 @@ def google_login(request):
 
 @api_view(['GET'])
 def auth_complete(request):
-    """Handle the OAuth callback"""
+    """Handle the OAuth callback and redirect with token"""
     if request.user.is_authenticated:
-        return Response({
-            'message': 'Authentication successful',
-            'user': {
-                'id': request.user.id,
-                'username': request.user.username,
-                'email': request.user.email,
-                'is_authenticated': True
-            }
-        })
-    return Response({'error': 'Authentication failed'}, status=401)
+        token, _ = Token.objects.get_or_create(user=request.user)
+
+        redirect_url = f"http://localhost:3000/write-email/?token={token.key}"
+        return HttpResponseRedirect(redirect_url)
+    
+    return HttpResponseRedirect("http://localhost:3000/error")
 
 @api_view(['GET'])
 def check_auth(request):
