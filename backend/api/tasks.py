@@ -2,7 +2,7 @@ from celery import shared_task
 from django.core.mail import send_mail, get_connection
 from django.utils.timezone import now
 from django.urls import reverse
-from .models import Organization, EmailLog
+from .models import Organization, EmailLog,CompanyUserEngagement
 import logging
 from django.core.mail import get_connection, EmailMultiAlternatives
 
@@ -56,7 +56,7 @@ def send_scheduled_email(self, organization_id, user_email, subject, message):
         email.send()
 
         # Log success
-        EmailLog.objects.create(
+        CompanyUserEngagement.objects.create(
             organization_id=organization_id,
             user_email=user_email_,
             subject=subject,
