@@ -710,3 +710,36 @@ def autofill_time(request):
     return Response({
         "optimalStartTime": avg_time.strftime("%H:%M")
     })
+
+def track_email_open(request):
+    user_email = request.GET.get("email")
+    organization_id = request.GET.get("organization")
+    campaign_id = request.GET.get("campaign")
+
+    if user_email and organization_id:
+        try:
+            user = CompanyUser.objects.get(email=user_email)
+            organization = Organization.objects.get(org_id_id=organization_id)
+            engagement = CompanyUserEngagement.objects.filter(
+                user_id=user.id,
+                org_id=organization.org_id_id,
+                campaign_id = campaign_id,
+                click_time__isnull=True 
+            ).order_by('-send_time').first()
+
+            if engagement:
+                engagement.open_time = now()
+                engagement.engagement_delay = (engagement.click_time - engagement.send_time).total_seconds()
+                engagement.save()
+                logger.info(f"Email click tracked for {user_email} in organization {organization_id}")
+            else:
+                logger.warning(f"No unclicked engagement found for {user_email} in {organization_id}")
+
+        except CompanyUser.DoesNotExist:
+            logger.error(f"User with email {user_email} not found")
+        except Organization.DoesNotExist:
+            logger.error(f"Organization with ID {organization_id} not found")
+        except Exception as e:
+            logger.error(f"Error tracking email click: {str(e)}")
+
+    return HttpResponseRedirect(redirect_url)

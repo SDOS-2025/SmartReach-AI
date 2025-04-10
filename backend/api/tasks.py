@@ -10,33 +10,73 @@ logger = logging.getLogger(__name__)
 def send_scheduled_email(self, organization_id, campaign_id, user_email, subject, message):
     try:
         # Fetch organization and related instances
-        print(organization_id,campaign_id,user_email)
         organization = Organization.objects.get(org_id_id=organization_id)
+        name = User.objects.get(user_id=organization_id).name
         user = CompanyUser.objects.get(email=user_email)
         campaign = CampaignDetails.objects.get(campaign_id=campaign_id)
-        print(user)
-        # Tracking URL
+
+        # Tracking URLs
         tracking_url = f"http://localhost:8000/api/track-click?email={user_email}&organization={organization_id}&campaign={campaign_id}"
+        open_url = f"http://localhost:8000/api/track-open?email={user_email}&organization={organization_id}&campaign={campaign_id}"
 
         # Ensure message is a string
         message = str(message)
         text_body = f"{message}\n\nClick here to learn more: {tracking_url}"
 
-        # HTML-formatted message
-        paragraphs = message.split('\n\n')
-        html_message = ''.join('<p>' + p.replace("\n", "<br>") + '</p>' for p in paragraphs)
+        # HTML template
         html_body = f"""
-        <html>
-          <body>
-            {html_message}
-            <p>
-              <a href="{tracking_url}">Click here to learn more</a>
-            </p>
-          </body>
+        <!DOCTYPE html>
+        <html lang="en">
+        <body style="margin: 0; padding: 0; font-family: Arial, Helvetica, sans-serif; background-color: #ffffff; line-height: 1.6;">
+            <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="background-color: #ffffff;">
+                <tr>
+                    <td align="center">
+                        <table role="presentation" width="600" cellspacing="0" cellpadding="0" border="0" style="max-width: 600px; margin: 0 auto; padding: 20px 0;">
+                            <tr>
+                                <td style="padding: 20px 0; text-align: center;">
+                                    <h1 style="margin: 0; font-size: 28px; color: #222222; font-weight: bold;">{subject}</h1>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td style="padding: 0 20px;">
+                                    <hr style="border: none; border-top: 1px solid #e0e0e0; margin: 0;">
+                                </td>
+                            </tr>
+                            <tr>
+                                <td style="padding: 20px; color: #333333; font-size: 16px;">
+                                    <p style="margin: 0 0 20px;">{message}</p>
+                                    <table role="presentation" cellspacing="0" cellpadding="0" border="0" style="margin: 20px auto;">
+                                        <tr>
+                                            <td style="text-align: center;">
+                                                <a href="{tracking_url}" target="_blank" 
+                                                   style="display: inline-block; padding: 14px 30px; background-color: #ff5733; color: #ffffff; text-decoration: none; border-radius: 6px; font-size: 16px; font-weight: bold;">
+                                                    Shop Now
+                                                </a>
+                                            </td>
+                                        </tr>
+                                    </table>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td style="padding: 0 20px;">
+                                    <hr style="border: none; border-top: 1px solid #e0e0e0; margin: 0;">
+                                </td>
+                            </tr>
+                            <tr>
+                                <td style="padding: 20px; text-align: center; font-size: 12px; color: #666666;">
+                                    <p style="margin: 0 0 10px;">You’re receiving this email because you subscribed to {name} updates.</p>
+                                    <p style="margin: 10px 0 0;">©️ 2025 {name}. All rights reserved.</p>
+                                    <img src="{open_url}" width="1" height="1" alt="" style="display:none;" />
+                                </td>
+                            </tr>
+                        </table>
+                    </td>
+                </tr>
+            </table>
+        </body>
         </html>
         """
 
-        # Email connection
         connection = get_connection(
             backend="django.core.mail.backends.smtp.EmailBackend",
             host=organization.email_host,
@@ -46,8 +86,7 @@ def send_scheduled_email(self, organization_id, campaign_id, user_email, subject
             use_tls=organization.email_use_tls,
         )
 
-        # Send email
-        user_email_ = 'rahul.omalur14@gmail.com'
+        user_email_ = user_email
         email = EmailMultiAlternatives(
             subject=subject,
             body=text_body,
@@ -83,4 +122,4 @@ def send_scheduled_email(self, organization_id, campaign_id, user_email, subject
         raise
     except Exception as e:
         logger.error(f"Error sending email to {user_email}: {str(e)}")
-        raise  # Re-raise for Celery retry
+        raise
