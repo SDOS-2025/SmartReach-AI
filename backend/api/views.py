@@ -149,7 +149,7 @@ def send_time_optim(request):
         print(utc_send_time)
         # Schedule email via Celery
         send_scheduled_email.apply_async(
-            args=[org_id, user_email, subject, message_],
+            args=[org_id,campaign_id,user_email, subject, message_],
             eta=utc_send_time  # Schedule email at the converted UTC time
             )
 
@@ -505,22 +505,43 @@ logger = logging.getLogger(__name__)
 def track_email_click(request):
     user_email = request.GET.get("email")
     organization_id = request.GET.get("organization")
+    campaign_id = request.GET.get("campaign")  # Optional: if tracking pixel includes campaign
     redirect_url = "https://smartreachai.social"  # Redirect to your content page
 
     if user_email and organization_id:
         try:
-            # Find and update email log to mark as clicked
-            email_log = EmailLog.objects.filter(organization_id=organization_id, user_email=user_email).first()
-            if email_log and not email_log.clicked_at:
-                email_log.clicked_at = now()
-                email_log.status = "Clicked"
-                email_log.save()
-                logger.info(f"Email {organization_id} clicked by {user_email}")
+            # Fetch related instances
+            user = CompanyUser.objects.get(email=user_email)
+            organization = Organization.objects.get(org_id_id=organization_id)
+            print(user.id)
+            print(organization.org_id_id)
+            print(campaign_id)
+            # Find the most recent unclicked engagement for this user/org
+            engagement = CompanyUserEngagement.objects.filter(
+                user_id=user.id,
+                org_id=organization.org_id_id,
+                campaign_id = campaign_id,
+                click_time__isnull=True 
+            ).order_by('-send_time').first()
+            print(engagement) 
 
+            if engagement:
+                engagement.click_time = now()
+                engagement.engagement_delay = (engagement.click_time - engagement.send_time).total_seconds()
+                engagement.save()
+                print(engagement.click_time)
+                logger.info(f"Email click tracked for {user_email} in organization {organization_id}")
+            else:
+                logger.warning(f"No unclicked engagement found for {user_email} in {organization_id}")
+
+        except CompanyUser.DoesNotExist:
+            logger.error(f"User with email {user_email} not found")
+        except Organization.DoesNotExist:
+            logger.error(f"Organization with ID {organization_id} not found")
         except Exception as e:
             logger.error(f"Error tracking email click: {str(e)}")
 
-    return HttpResponseRedirect(redirect_url)  # Redirect user to content
+    return HttpResponseRedirect(redirect_url)
 
 @api_view(['POST'])
 def generate_template_additional_info(request):

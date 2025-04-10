@@ -425,20 +425,20 @@ function EmailPage() {
 
   const renderStep3 = () => (
     <div className="flex-[6] overflow-y-auto h-full px-10 text-lg flex flex-col items-center justify-center">
-      <h2 className="text-2xl font-bold text-gray-800 mb-4">Step 3: Tharun Ninja!</h2>
-      <img
+      <h2 className="text-2xl font-bold text-gray-800 mb-4">Step 3: Congrats!</h2>
+      {/* <img
         src="images/image.png"
         alt="Rick Astley Rickrolling"
         className="w-full max-w-md h-auto rounded-lg shadow-lg"
-      />
+      /> */}
       <audio autoPlay loop className="hidden">
-        <source
+        {/* <source
           src="/audio/JD.mp3"
           type="audio/mpeg"
-        />
+        /> */}
         Your browser does not support the audio element.
       </audio>
-      <p className="text-gray-600 mt-4">ADHD ahh Hyper ahh</p>
+      <p className="text-gray-600 mt-4">Mails have been sent!</p>
     </div>
   );
 
