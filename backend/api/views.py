@@ -1,6 +1,7 @@
 import json
 from datetime import datetime,timedelta
 import pytz
+import pandas as pd
 from django.shortcuts import render, redirect
 from django.core.mail import send_mail, get_connection
 from django.http import JsonResponse
@@ -111,50 +112,86 @@ def convert_ist_to_utc(ist_date, ist_time):
 
 @api_view(['GET'])
 def send_time_optim(request):
+    # Fetch cached values
     org_id = cache.get('org_id')
-    user_id = cache.get('user_id')
+    user_id = cache.get('user_id')  # Unused in current logic; included for completeness
     campaign_id = cache.get('campaign_id')
-    campaign = CampaignDetails.objects.get(campaign_id=campaign_id)
+
+    if not all([org_id, campaign_id]):
+        return Response({"error": "Missing required cached fields"}, status=400)
+
+    # Fetch campaign details
+    try:
+        campaign = CampaignDetails.objects.get(campaign_id=campaign_id)
+        subject = campaign.campaign_mail_subject
+        message = campaign.campaign_mail_body
+        schedule_time = campaign.send_time  # Start datetime
+        campaign_end_date = campaign.campaign_end_date  # End datetime
+    except CampaignDetails.DoesNotExist:
+        return Response({"error": "Invalid campaign ID"}, status=400)
+
+    # Parse start and end times
+    schedule_date, schedule_time_str = str(schedule_time).split(" ")
+    schedule_time_str = schedule_time_str.split("+")[0][:-3]  # "HH:MM"
+    end_date, end_time_str = str(campaign_end_date).split(" ")
+    end_time_str = end_time_str.split("+")[0][:-3]  # "HH:MM"
+
+    # Convert to UTC
+    utc_start_time = convert_ist_to_utc(schedule_date, schedule_time_str)
+    utc_end_time = convert_ist_to_utc(end_date, end_time_str)
+
+    if utc_end_time < utc_start_time:
+        return Response({"error": "End date must be after start date"}, status=400)
+
+    # Fetch users
     users = CompanyUser.objects.filter(org_id_id=org_id)
-    subject = campaign.campaign_mail_subject
-    message = campaign.campaign_mail_body
-    schedule_time = campaign.send_time
-    schedule_date,schedule_time = str(schedule_time).split(" ")
-    schedule_time = schedule_time.split("+")[0][:-3]
-    # if not all([org_id, schedule_date, schedule_time, subject, message,sto_option]):
-    #             return JsonResponse({"error": "Missing required fields"}, status=400)
-
-
-
-    print(subject)
     if not users.exists():
-        return JsonResponse({"error": "No users found for this organization"}, status=400)
+        return Response({"error": "No users found for this organization"}, status=400)
 
-    # Convert schedule time from IST to UTC
-    utc_send_time = convert_ist_to_utc(schedule_date,schedule_time)
-
-    # Loop through each user and schedule the email at the optimal time
+    # Schedule emails with statistical optimal time
+    scheduled_times = {}
     for user in users:
+        user_email = user.email  # Assuming email field exists; adjust if it’s user_email
+        personalized_message = message.replace("[company_name]", "SmartReach").replace("[recipient_name]", user.first_name)
 
-        # # Fetch engagement data
-        # engagement = UserEngagement.objects.filter(user_id=user.user_id).first()
-        # if not engagement:
-        #     continue  # Skip users with no engagement data
-        print(user.first_name)
-        message = message.replace("[company_name]", "SmartReach")
-        message_ = message.replace("[recipient_name]", user.first_name)
-        
-        print(message_)
-        user_email = user.email
-        print(utc_send_time)
+        # Get optimal send time statistically
+        engagements = CompanyUserEngagement.objects.filter(
+            user_id=user,
+            click_time__isnull=False
+        )
+
+        if not engagements.exists():
+            # Fallback to campaign start if no click data
+            optimal_send_time = utc_start_time
+        else:
+            # Statistical method: most frequent click hour
+            df = pd.DataFrame(list(engagements.values('click_time')))
+            df['click_hour'] = df['click_time'].dt.hour
+            optimal_hour = df['click_hour'].value_counts().idxmax()
+
+            # Adjust to campaign window
+            start_hour = utc_start_time.hour
+            end_hour = 23 if utc_end_time.date() > utc_start_time.date() else utc_end_time.hour
+            optimal_hour = max(start_hour, min(optimal_hour, end_hour))
+
+            # Set to first valid day
+            optimal_send_time = utc_start_time.replace(hour=optimal_hour)
+            now_ = now()
+            while optimal_send_time < now_ and optimal_send_time <= utc_end_time:
+                optimal_send_time += timedelta(days=1)
+            if optimal_send_time > utc_end_time:
+                optimal_send_time = utc_start_time
         # Schedule email via Celery
         send_scheduled_email.apply_async(
-            args=[org_id,campaign_id,user_email, subject, message_],
-            eta=utc_send_time  # Schedule email at the converted UTC time
-            )
+            args=[org_id, campaign_id, user_email, subject, personalized_message],
+            eta=optimal_send_time
+        )
+        scheduled_times[user_email] = str(optimal_send_time)
 
-    return JsonResponse({"message": "Emails scheduled successfully", "send_time": str(utc_send_time)})
-
+    return Response({
+        "message": "Emails scheduled successfully",
+        "scheduled_times": scheduled_times
+    })
 
 
 
