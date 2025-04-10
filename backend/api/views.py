@@ -743,3 +743,84 @@ def track_email_open(request):
             logger.error(f"Error tracking email click: {str(e)}")
 
     return JsonResponse({'status':'hottie'})
+
+@api_view(['POST'])
+def update_email(request):
+
+    data = json.loads(request.body.decode('utf-8'))
+    subject = data.get('Subject')
+    body = data.get('Body')
+    template = cache.get('Template')
+    if template:
+        template['Subject'] = subject
+        template['Body'] = body
+        cache.set('Template', template)
+        return JsonResponse({'message': 'Email updated successfully'})
+    else:
+        return JsonResponse({'error': 'No email template found'}, status=404)
+
+@api_view(['GET'])
+def get_email(request):
+    template = cache.get('Template')
+    subject = template['Subject']
+    message = f"{template['Body']}\n\n"
+
+    tracking_url = f"https://smartreachai.social"
+    open_url = f"https://smartreachai.social"
+
+    name = User.objects.get(user_id=cache.get('user_id')).username
+    html_body = f"""
+    <!DOCTYPE html>
+        <html lang="en">
+        <body style="margin: 0; padding: 0; font-family: Arial, Helvetica, sans-serif; background-color: #ffffff; line-height: 1.6;">
+            <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="background-color: #ffffff;">
+                <tr>
+                    <td align="center">
+                        <table role="presentation" width="600" cellspacing="0" cellpadding="0" border="0" style="max-width: 600px; margin: 0 auto; padding: 20px 0;">
+                            <tr>
+                                <td style="padding: 20px 0; text-align: center;">
+                                    <h1 style="margin: 0; font-size: 28px; color: #222222; font-weight: bold;">{subject}</h1>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td style="padding: 0 20px;">
+                                    <hr style="border: none; border-top: 1px solid #e0e0e0; margin: 0;">
+                                </td>
+                            </tr>
+                            <tr>
+                                <td style="padding: 20px; color: #333333; font-size: 16px;">
+                                    <p style="margin: 0 0 20px;">{message}</p>
+                                    <table role="presentation" cellspacing="0" cellpadding="0" border="0" style="margin: 20px auto;">
+                                        <tr>
+                                            <td style="text-align: center;">
+                                                <a href="{tracking_url}" target="_blank" 
+                                                   style="display: inline-block; padding: 14px 30px; background-color: #ff5733; color: #ffffff; text-decoration: none; border-radius: 6px; font-size: 16px; font-weight: bold;">
+                                                    Shop Now
+                                                </a>
+                                            </td>
+                                        </tr>
+                                    </table>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td style="padding: 0 20px;">
+                                    <hr style="border: none; border-top: 1px solid #e0e0e0; margin: 0;">
+                                </td>
+                            </tr>
+                            <tr>
+                                <td style="padding: 20px; text-align: center; font-size: 12px; color: #666666;">
+                                    <p style="margin: 0 0 10px;">You’re receiving this email because you subscribed to {name} updates.</p>
+                                    <p style="margin: 10px 0 0;">©️ 2025 {name}. All rights reserved.</p>
+                                    <img src="{open_url}" width="1" height="1" alt="" style="display:none;" />
+                                </td>
+                            </tr>
+                        </table>
+                    </td>
+                </tr>
+            </table>
+        </body>
+        </html>
+    """
+    html_template = {'Subject': template['Subject'], 'Body': html_body}
+
+    return JsonResponse(html_template)

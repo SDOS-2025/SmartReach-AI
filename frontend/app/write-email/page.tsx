@@ -462,7 +462,8 @@ function EmailPage() {
       const newStep = prevStep + direction;
       if (newStep < 1) return 1;
       if (prevStep == 1 && direction == 1){
-          updateEmail()          
+          updateEmail();
+          getEmail();    
       }
 
       if (prevStep == 2 && direction == 1){
@@ -515,24 +516,46 @@ function EmailPage() {
 
   const updateEmail = async () => {
     try {
+      // Function to get the CSRF token from cookies
+      const getCsrfToken = () => {
+        const value = `; ${document.cookie}`;
+        const parts = value.split(`; csrftoken=`);
+        if (parts.length === 2) return parts.pop().split(';').shift();
+        return null;
+      };
+  
+      const csrfToken = getCsrfToken();
+      if (!csrfToken) {
+        throw new Error('CSRF token not found in cookies');
+      }
+  
+      console.log('Updating email with subject:', emailSubject);
+      console.log('Updating email with body:', emailBody);
+  
       const response = await fetch('http://localhost:8000/api/update-email', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          'X-CSRFToken': csrfToken, // Add CSRF token header
+        },
+        credentials: 'include', // Ensure cookies (including csrftoken) are sent
         body: JSON.stringify({
           Subject: emailSubject,
           Body: emailBody,
         }),
       });
+  
       if (!response.ok) {
         throw new Error('Failed to update email');
       }
+  
       const data = await response.json();
-      console.log('email updated successfully:', data);
+      console.log('Email updated successfully:', data);
     } catch (error) {
       console.error('Error updating email:', error);
       toast.error('Failed to update email. Please try again.');
     }
-  }
+  };
 
   const getEmail = async () => {
     setIsLoading(true);
@@ -543,7 +566,7 @@ function EmailPage() {
     }, 1000);
 
     try {
-      const response = await fetch('http://localhost:8000/api/get-email', {
+      const response = await fetch('http://localhost:8000/api/get-email/', {
         method: 'GET',
         // headers: { 'Content-Type': 'application/json' },
         // body: JSON.stringify(forlgata),

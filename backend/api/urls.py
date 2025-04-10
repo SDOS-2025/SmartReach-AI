@@ -19,7 +19,9 @@ from .views import (
     get_campaigns,
     get_campaign_details,
     get_chart_data,
-    autofill_time
+    autofill_time,
+    update_email,
+    get_email
 
 )
 
@@ -43,6 +45,8 @@ urlpatterns = [
     path('campaigns',get_campaigns),
     path('get-campaign-details',get_campaign_details),
     path('get_chart_data', get_chart_data),
-    path('optimal-start-time',autofill_time)
+    path('optimal-start-time',autofill_time),
+    path('update-email', update_email),
+    path('get-email/', get_email)
 
 ]
