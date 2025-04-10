@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useRef } from 'react';
+import React, { useState , useRef } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -23,7 +23,7 @@ const LoginCard = ({ view, setView }: LoginCardProps) => {
   const [showLoginErrors, setShowLoginErrors] = useState(false);
   const [showSignupIndErrors, setShowSignupIndErrors] = useState(false);
   const [showSignupBusErrors, setShowSignupBusErrors] = useState(false);
-
+  
   const passwordInputRef = useRef<HTMLInputElement>(null);
 
   const handleGoogleLogin = () => {
@@ -67,9 +67,77 @@ const LoginCard = ({ view, setView }: LoginCardProps) => {
         localStorage.setItem("authToken", data.token); // Save token for auth state
         window.location.href = '/home';
       }
-      
     } catch (error) {
       console.error('Error during login:', error);
+    }
+  };
+
+  const handleSignupBusiness = async () => {
+    setShowSignupBusErrors(true);
+    if (!isSignupBusinessValid()) {
+      console.error(
+        'Please fill all required fields: Business Name, Email, Password, Email Host User, Email Host Password, Email Host, Email Port'
+      );
+      return;
+    }
+
+    const requestBody = {
+      username,
+      email,
+      password,
+      email_host_user: emailHostUser,
+      email_host_password: emailHostPassword,
+      email_host: emailHost,
+      email_port: emailPort,
+      email_use_tls: emailUseTLS,
+    };
+    try {
+      const response = await fetch('http://localhost:8000/api/signup-business', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(requestBody),
+      });
+      if (!response.ok) {
+        const errorData = await response.json();
+        console.error('Signup error:', errorData);
+        return;
+      }
+      const data = await response.json();
+      console.log('Signup response:', data);
+      if (data.message === 'User and organization created successfully') {
+        setView('login');
+      }
+    } catch (error) {
+      console.error('Error during signup:', error);
+    }
+  };
+
+  const handleSignupIndividuals = async () => {
+    setShowSignupIndErrors(true);
+    if (!isSignupIndividualValid()) {
+      console.error('Please fill all required fields: Name, Email, Password');
+      return;
+    }
+
+    const requestBody = { username, email, password };
+    try {
+      const response = await fetch('http://localhost:8000/api/signup-individuals', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(requestBody),
+      });
+      if (!response.ok) {
+        const errorData = await response.json();
+        console.error('Signup error:', errorData);
+        return;
+      }
+      const data = await response.json();
+      console.log('Signup response:', data);
+      if (data.message === 'User created successfully') {
+        setView('login');
+      }
+    } catch (error) {
+      console.error('Error during signup:', error);
     }
   };
 
@@ -136,9 +204,170 @@ const LoginCard = ({ view, setView }: LoginCardProps) => {
     </form>
   );
 
+  const renderSignupIndividualForm = () => (
+    <>
+      <h1 className="text-3xl font-bold text-center mb-4">Signup for Individuals</h1>
+      <Label className="block">
+        <span className="text-lg">Name</span>
+        <Input
+          className="h-14 mt-2"
+          type="text"
+          placeholder="Enter your name"
+          value={username}
+          onChange={(e) => setUsername(e.target.value)}
+          required
+        />
+        {showSignupIndErrors && !username && <p className="text-red-500 text-sm mt-1">This field is required</p>}
+      </Label>
+      <Label className="block mt-4">
+        <span className="text-lg">Email</span>
+        <Input
+          className="h-14 mt-2"
+          type="email"
+          placeholder="Enter your email"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+          required
+        />
+        {showSignupIndErrors && !email && <p className="text-red-500 text-sm mt-1">This field is required</p>}
+      </Label>
+      <Label className="block mt-4">
+        <span className="text-lg">Password</span>
+        <Input
+          className="h-14 mt-2"
+          type="password"
+          placeholder="Create a password"
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+          required
+        />
+        {showSignupIndErrors && !password && <p className="text-red-500 text-sm mt-1">This field is required</p>}
+      </Label>
+      <Button
+        className="w-full bg-blue-500 h-14 text-xl text-white py-2 mt-6 rounded-full hover:bg-blue-600 transition-all duration-300 ease-in-out hover:scale-95 hover:shadow-md hover:shadow-blue-500/50 animate-shrink-shadow"
+        onClick={handleSignupIndividuals}
+      >
+        Sign Up
+      </Button>
+      <Button variant="link" className="mt-4 text-blue-500 text-lg" onClick={() => setView('login')}>
+        Back to Login
+      </Button>
+    </>
+  );
+
+  const renderSignupBusinessForm = () => (
+    <>
+      <h1 className="text-3xl font-bold text-center mb-4">Signup for Business</h1>
+      <Label className="block">
+        <span className="text-lg">Business Name</span>
+        <Input
+          className="h-14 mt-2"
+          type="text"
+          placeholder="Enter your business name"
+          value={username}
+          onChange={(e) => setUsername(e.target.value)}
+          required
+        />
+        {showSignupBusErrors && !username && <p className="text-red-500 text-sm mt-1">This field is required</p>}
+      </Label>
+      <Label className="block mt-4">
+        <span className="text-lg">Business Email</span>
+        <Input
+          className="h-14 mt-2"
+          type="email"
+          placeholder="Enter your business email"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+          required
+        />
+        {showSignupBusErrors && !email && <p className="text-red-500 text-sm mt-1">This field is required</p>}
+      </Label>
+      <Label className="block mt-4">
+        <span className="text-lg">Password</span>
+        <Input
+          className="h-14 mt-2"
+          type="password"
+          placeholder="Create a password"
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+          required
+        />
+        {showSignupBusErrors && !password && <p className="text-red-500 text-sm mt-1">This field is required</p>}
+      </Label>
+      <Label className="block mt-4">
+        <span className="text-lg">Email Host User</span>
+        <Input
+          className="h-14 mt-2"
+          type="text"
+          placeholder="Enter your email host user"
+          value={emailHostUser}
+          onChange={(e) => setEmailHostUser(e.target.value)}
+          required
+        />
+        {showSignupBusErrors && !emailHostUser && <p className="text-red-500 text-sm mt-1">This field is required</p>}
+      </Label>
+      <Label className="block mt-4">
+        <span className="text-lg">Email Host Password</span>
+        <Input
+          className="h-14 mt-2"
+          type="password"
+          placeholder="Enter your email host password"
+          value={emailHostPassword}
+          onChange={(e) => setEmailHostPassword(e.target.value)}
+          required
+        />
+        {showSignupBusErrors && !emailHostPassword && <p className="text-red-500 text-sm mt-1">This field is required</p>}
+      </Label>
+      <Label className="block mt-4">
+        <span className="text-lg">Email Host</span>
+        <Input
+          className="h-14 mt-2"
+          type="text"
+          placeholder="Enter your email host (e.g. smtp.gmail.com)"
+          value={emailHost}
+          onChange={(e) => setEmailHost(e.target.value)}
+          required
+        />
+        {showSignupBusErrors && !emailHost && <p className="text-red-500 text-sm mt-1">This field is required</p>}
+      </Label>
+      <Label className="block mt-4">
+        <span className="text-lg">Email Port</span>
+        <Input
+          className="h-14 mt-2"
+          type="number"
+          placeholder="Enter your email port (e.g. 587)"
+          value={emailPort}
+          onChange={(e) => setEmailPort(e.target.value)}
+          required
+        />
+        {showSignupBusErrors && !emailPort && <p className="text-red-500 text-sm mt-1">This field is required</p>}
+      </Label>
+      <Label className="flex justify-start mt-4">
+        <span className="text-lg">Email Use TLS</span>
+        <Input
+          className="h-5 ml-3 w-5"
+          type="checkbox"
+          checked={emailUseTLS}
+          onChange={(e) => setEmailUseTLS(e.target.checked)}
+        />
+      </Label>
+      <Button
+        className="w-full bg-blue-500 h-14 text-xl text-white py-2 mt-6 rounded-full hover:bg-blue-600 transition-all duration-300 ease-in-out hover:scale-95 hover:shadow-md hover:shadow-blue-500/50 animate-shrink-shadow"
+        onClick={handleSignupBusiness}
+      >
+        Sign Up
+      </Button>
+      <Button variant="link" className="mt-4 text-blue-500 text-lg" onClick={() => setView('login')}>
+        Back to Login
+      </Button>
+    </>
+  );
+
   return (
     <div className="px-12 py-4 max-w-md:p-4 md:p-6 my-auto flex flex-col space-y-6">
       {view === 'login' && renderLoginForm()}
+      {view === 'signup-individual' && renderSignupIndividualForm()}
+      {view === 'signup-business' && renderSignupBusinessForm()}
       <style jsx>{`
         @keyframes shrink-shadow {
           0%, 100% { transform: scale(1); box-shadow: 0 0 0 rgba(0, 0, 0, 0); }

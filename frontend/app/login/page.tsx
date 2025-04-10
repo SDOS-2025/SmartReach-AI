@@ -14,15 +14,15 @@ function LoginPage() {
         <NavigationMenu isLoggedIn={false} />
       </div>
       
-      <div className="flex flex-auto flex-col md:flex-row">
+      <div className="flex flex-auto flex-col md:flex-row h-[calc(100vh-5rem)]">
         {/* Login Form Section */}
-        <div className="py-8 md:py-12 md:h-[calc(100vh-5rem)] w-full md:w-3/5 flex-none flex justify-center items-center relative overflow-hidden">
+        <div className="w-full md:w-3/5 flex justify-center items-start relative overflow-y-auto">
           {/* Decorative elements */}
           <div className="absolute top-0 left-0 w-32 h-32 bg-blue-500/10 rounded-full -translate-x-1/2 -translate-y-1/2"></div>
           <div className="absolute bottom-0 right-0 w-64 h-64 bg-blue-500/5 rounded-full translate-x-1/3 translate-y-1/3"></div>
           
           {/* Login card container with added internal space */}
-          <div className="w-full max-w-md z-10 px-4">
+          <div className="w-full max-w-md z-10 px-4 py-8 md:py-12">
             <div className="bg-white rounded-2xl shadow-xl p-10">
               <LoginCard view={view} setView={setView} />
             </div>
@@ -30,7 +30,7 @@ function LoginPage() {
         </div>
         
         {/* CTA Section */}
-        <div className="bg-[#0F142E] flex flex-col text-white items-center justify-center space-y-8 h-full p-8 md:p-12 flex-auto relative overflow-hidden">
+        <div className="bg-[#0F142E] flex flex-col text-white items-center justify-center space-y-8 w-full md:w-2/5 p-8 md:p-12 relative overflow-hidden">
           {/* Decorative gradient overlay */}
           <div className="absolute inset-0 bg-gradient-to-br from-blue-900/30 to-purple-900/20"></div>
           
@@ -67,7 +67,6 @@ function LoginPage() {
                 Signup for Business
               </Button>
             </div>
-            
           </div>
         </div>
       </div>

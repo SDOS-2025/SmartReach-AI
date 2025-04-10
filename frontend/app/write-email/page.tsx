@@ -47,6 +47,7 @@ function EmailPage() {
   });
   const [step2Data, setStep2Data] = useState<{
     campaignName: string;
+    companyURL: string
     campaignDesc: string;
     startDate: string;
     startTime: string;
@@ -55,6 +56,7 @@ function EmailPage() {
 
   }>({
     campaignName: '',
+    companyURL: '',
     campaignDesc: '',
     startDate: '',
     startTime: '',
@@ -92,10 +94,10 @@ function EmailPage() {
 
   const handleStep2TextChange = (field: string) => (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     let text = e.target.value;
-    let words = text.trim().split(/\s+/); // Split by whitespace to count words
+    let words = text.trim().split(/\s+/); 
 
     if (words.length > 100) {
-      text = words.slice(0, 100).join(" "); // Keep only the first 100 words
+      text = words.slice(0, 100).join(" "); 
     }
 
     setStep2Data((prev) => ({ ...prev, [field]: e.target.value }));
@@ -126,6 +128,7 @@ function EmailPage() {
   const isStep2Valid = () => {
     return (
       step2Data.campaignName.trim() !== '' &&
+      step2Data.companyURL.trim() !== '' &&
       step2Data.campaignDesc.trim() !== '' &&
       step2Data.startDate.trim() !== '' &&
       step2Data.startTime.trim() !== '' &&
@@ -330,6 +333,27 @@ function EmailPage() {
           
         </div>
       </div>
+
+      <div className="mb-6">
+        <Label htmlFor="companyURL" className="text-lg">
+          What is the company website ?<span className="text-red-500">*</span>
+        </Label>
+        <div className="mt-2 flex gap-4">
+          <Input
+            type="text"
+            name="companyURL"
+            id="companyURL"
+            maxLength={100}
+            className="w-1/2 h-14 p-2 border border-gray-300 rounded-lg bg-gray-100"
+            value={step2Data.companyURL}
+            onChange={handleStep2InputChange('companyURL')}
+            required
+          />
+          {showErrors && !step2Data.companyURL && <p className="text-red-500 text-sm mt-1">companyURL is required</p>}
+          
+        </div>
+      </div>
+
       <div className="mb-6">
         <Label htmlFor="campaignDesc" className="text-lg">
           Enter the campaign description <span className="text-red-500">*</span>
@@ -361,7 +385,7 @@ function EmailPage() {
     >
       Autofill Optimal Time
     </button>
-  </div>
+      </div>
 
         <div className="mt-2 flex gap-4">
           <Input
@@ -426,16 +450,7 @@ function EmailPage() {
   const renderStep3 = () => (
     <div className="flex-[6] overflow-y-auto h-full px-10 text-lg flex flex-col items-center justify-center">
       <h2 className="text-2xl font-bold text-gray-800 mb-4">Step 3: Congrats!</h2>
-      {/* <img
-        src="images/image.png"
-        alt="Rick Astley Rickrolling"
-        className="w-full max-w-md h-auto rounded-lg shadow-lg"
-      /> */}
       <audio autoPlay loop className="hidden">
-        {/* <source
-          src="/audio/JD.mp3"
-          type="audio/mpeg"
-        /> */}
         Your browser does not support the audio element.
       </audio>
       <p className="text-gray-600 mt-4">Mails have been sent!</p>
@@ -446,7 +461,11 @@ function EmailPage() {
     setCurrentStep((prevStep) => {
       const newStep = prevStep + direction;
       if (newStep < 1) return 1;
-      if (newStep == 3){
+      if (prevStep == 1 && direction == 1){
+          updateEmail()          
+      }
+
+      if (prevStep == 2 && direction == 1){
         sendTimeOptim();
       }
 
@@ -494,6 +513,54 @@ function EmailPage() {
     }
   };
 
+  const updateEmail = async () => {
+    try {
+      const response = await fetch('http://localhost:8000/api/update-email', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          Subject: emailSubject,
+          Body: emailBody,
+        }),
+      });
+      if (!response.ok) {
+        throw new Error('Failed to update email');
+      }
+      const data = await response.json();
+      console.log('email updated successfully:', data);
+    } catch (error) {
+      console.error('Error updating email:', error);
+      toast.error('Failed to update email. Please try again.');
+    }
+  }
+
+  const getEmail = async () => {
+    setIsLoading(true);
+    const startTime = Date.now();
+    let timerInterval = setInterval(() => {
+      const elapsedTime = Math.floor((Date.now() - startTime) / 1000);
+      setLoadingTime(elapsedTime);
+    }, 1000);
+
+    try {
+      const response = await fetch('http://localhost:8000/api/get-email', {
+        method: 'GET',
+        // headers: { 'Content-Type': 'application/json' },
+        // body: JSON.stringify(forlgata),
+      });
+      const data = await response.json();
+      setEmailSubject(data.Subject);
+      setEmailBody(data.Body);
+      setIsEmailGenerated(true);
+    } catch (error) {
+      console.error('Error fetching email data:', error);
+      setIsEmailGenerated(false);
+    } finally {
+      clearInterval(timerInterval);
+      setIsLoading(false);
+    }
+  }
+
   const sendTimeOptim = async () => {
     try {
       const response = await fetch('http://localhost:8000/api/sto', {
@@ -509,6 +576,7 @@ function EmailPage() {
       console.error('Error with Step 3 GET request:', error);
     }
   }
+
   const fetchAndAutofillOptimalStartTime = async () => {
     try {
       const response = await fetch('http://localhost:8000/api/optimal-start-time', {
@@ -637,43 +705,62 @@ function EmailPage() {
             </div>
           </div>
         </div>
-        <div className="bg-[#0F142E] flex flex-col items-center justify-center h-[30rem] lg:h-full flex-auto p-10">
-          <Textarea
-            className="text-lg overflow-y-hidden w-full h-[8%] p-5 pl-10 bg-white rounded-t-lg resize-none"
-            name="template_subject"
-            placeholder="Subject"
-            // ref={subjectRef}
-            value={emailSubject}
-          />
-          <Textarea
-            className="text-lg w-full h-[82%] pl-10 pt-5 bg-white rounded-b-lg resize-none"
-            name="template_body"
-            placeholder="Body"
-            // ref={bodyRef}
-            value={emailBody}
-          />
+        <div className="bg-[#0F142E] flex flex-col w-screen lg:w-6/12 p-4 lg:p-10 items-center justify-center h-[30rem] lg:h-full flex-auto p-10">
+          {currentStep === 1 && (
+            <>
+              <Textarea
+                className="text-lg overflow-y-hidden w-full h-[8%] p-5 pl-10 bg-white rounded-t-lg resize-none"
+                name="template_subject"
+                placeholder="Subject"
+                value={emailSubject}
+                onChange={(e) => setEmailSubject(e.target.value)}
+              />
+              <Textarea
+                className="text-lg w-full h-[82%] pl-10 pt-5 bg-white rounded-b-lg resize-none"
+                name="template_body"
+                placeholder="Body"
+                value={emailBody}
+                onChange={(e) => setEmailBody(e.target.value)}
+              />
+            </>
+          )}
+          
+          {currentStep === 2 && (
+          <>
+            <div
+              className="text-lg overflow-y-hidden w-full h-[8%] p-5 pl-10 bg-white rounded-t-lg resize-none"
+              dangerouslySetInnerHTML={{ __html: emailSubject }}
+            />
+            <div
+              className="text-lg w-full h-[82%] pl-10 p-5 bg-white rounded-b-lg resize-none overflow-auto"
+              dangerouslySetInnerHTML={{ __html: emailBody }}
+            />
+          </>
+        )}
+          
           {isLoading && (
-  <div className="fixed inset-0 z-50 flex items-center justify-center bg-gray-900 bg-opacity-70 backdrop-blur-sm transition-opacity">
-    <div className="flex flex-col items-center gap-5 p-8 bg-white dark:bg-gray-800 rounded-xl shadow-2xl transform transition-all">
-      <div className="relative w-16 h-16">
-        {/* Outer spinner */}
-        <div className="absolute inset-0 rounded-full border-4 border-blue-100 dark:border-gray-700"></div>
-        {/* Animated spinner */}
-        <div className="absolute inset-0 rounded-full border-4 border-blue-500 border-t-transparent animate-spin"></div>
-      </div>
-      
-      <div className="text-center">
-        <h3 className="text-lg font-semibold text-gray-800 dark:text-gray-200">
-          Processing Your Request
-        </h3>
-        <p className="mt-1 text-gray-600 dark:text-gray-400">
-          Elapsed time: <span className="font-mono">{loadingTime}s</span>
-        </p>
-      </div>
-    </div>
-  </div>
-)}
+            <div className="fixed inset-0 z-50 flex items-center justify-center bg-gray-900 bg-opacity-70 backdrop-blur-sm transition-opacity">
+              <div className="flex flex-col items-center gap-5 p-8 bg-white dark:bg-gray-800 rounded-xl shadow-2xl transform transition-all">
+                <div className="relative w-16 h-16">
+                  {/* Outer spinner */}
+                  <div className="absolute inset-0 rounded-full border-4 border-blue-100 dark:border-gray-700"></div>
+                  {/* Animated spinner */}
+                  <div className="absolute inset-0 rounded-full border-4 border-blue-500 border-t-transparent animate-spin"></div>
+                </div>
+                
+                <div className="text-center">
+                  <h3 className="text-lg font-semibold text-gray-800 dark:text-gray-200">
+                    Processing Your Request
+                  </h3>
+                  <p className="mt-1 text-gray-600 dark:text-gray-400">
+                    Elapsed time: <span className="font-mono">{loadingTime}s</span>
+                  </p>
+                </div>
+              </div>
+            </div>
+          )}
         </div>
+
       </div>
     </div>
   );
