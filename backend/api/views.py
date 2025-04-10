@@ -1,5 +1,5 @@
 import json
-from datetime import datetime
+from datetime import datetime,timedelta
 import pytz
 from django.shortcuts import render, redirect
 from django.core.mail import send_mail, get_connection
@@ -659,3 +659,33 @@ def get_chart_data(request):
     if not chart_data:
         return JsonResponse({'error': 'No campaign data found'}, status=404)
     return JsonResponse({'chart_data': chart_data})
+
+
+
+@api_view(['GET'])
+def autofill_time(request):
+    org_id = cache.get('org_id')
+    print("Org ID:", org_id)
+
+    open_times_qs = CompanyUserEngagement.objects.filter(org_id_id=org_id)
+    times = []
+
+    for record in open_times_qs:
+        try:
+            time_obj = record.open_time.time()  # directly extract time part
+            delta = timedelta(hours=time_obj.hour, minutes=time_obj.minute, seconds=time_obj.second)
+            times.append(delta)
+        except Exception as e:
+            print(f"Error parsing datetime object: {e}")
+
+    if not times:
+        return Response({"message": "No valid open times found"}, status=404)
+
+    # Compute average time
+    total_seconds = sum(t.total_seconds() for t in times)
+    avg_seconds = total_seconds / len(times)
+    avg_time = (datetime.min + timedelta(seconds=avg_seconds)).time()
+
+    return Response({
+        "optimalStartTime": avg_time.strftime("%H:%M")
+    })

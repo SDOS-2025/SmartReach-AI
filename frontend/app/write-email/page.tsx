@@ -9,6 +9,7 @@ import { FaArrowRight, FaArrowLeft, FaQuestion, FaDatabase, FaTelegramPlane } fr
 import { Input } from '@/components/ui/input';
 import React, { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
+import { toast } from 'sonner';
 
 
 function EmailPage() {
@@ -349,9 +350,19 @@ function EmailPage() {
       </div>
 
       <div className="mb-6">
-        <Label htmlFor="schedule" className="text-lg">
-          When would you like to start your campaign? <span className="text-red-500">*</span>
-        </Label>
+        <div className="flex justify-between items-center">
+    <Label htmlFor="schedule" className="text-lg">
+      When would you like to start your campaign? <span className="text-red-500">*</span>
+    </Label>
+    <button
+      type="button"
+      onClick={fetchAndAutofillOptimalStartTime}
+      className="text-sm text-blue-600 hover:underline"
+    >
+      Autofill Optimal Time
+    </button>
+  </div>
+
         <div className="mt-2 flex gap-4">
           <Input
             type="date"
@@ -498,7 +509,35 @@ function EmailPage() {
       console.error('Error with Step 3 GET request:', error);
     }
   }
-
+  const fetchAndAutofillOptimalStartTime = async () => {
+    try {
+      const response = await fetch('http://localhost:8000/api/optimal-start-time', {
+        method: 'GET',
+        headers: { 'Content-Type': 'application/json' },
+      });
+  
+      if (!response.ok) throw new Error('Failed to fetch optimal start time');
+  
+      const data = await response.json(); // expecting: { optimalStartDate: "2025-04-10", optimalStartTime: "10:30" }
+  
+      setStep2Data((prev) => ({
+        ...prev,
+        startDate: prev.startDate || data.optimalStartDate,
+        startTime: prev.startTime || data.optimalStartTime,
+      }));
+  
+      toast.success(
+        `Optimal start time recommended: ${data.optimalStartDate} at ${data.optimalStartTime}. Feel free to change.`,
+        {
+          duration: 6000,
+        }
+      );
+    } catch (error) {
+      console.error('Error fetching optimal start time:', error);
+      toast.error('Could not fetch recommended start time.');
+    }
+  };
+  
   const addStep2Timings = async () => {
     if (!isStep2Valid()) {
       console.log(step2Data)
