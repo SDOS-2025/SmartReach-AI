@@ -40,7 +40,7 @@ def login_view(request):
     password = request.data.get('password')
 
     # Try to get the user manually
-    user = User.objects.filter(username=username).first()
+    user = authenticate(request, username=username, password=password)
 
     if user is None:
         return Response({'error': 'Invalid username'}, status=400)
@@ -187,7 +187,7 @@ def send_time_optim(request):
             link = "https://smartreachai.social"
         send_scheduled_email.apply_async(
             args=[org_id, campaign_id, user_email, subject, personalized_message, link],
-            eta=optimal_send_time
+            eta=now()
         )
         scheduled_times[user_email] = str(optimal_send_time)
 
@@ -548,7 +548,7 @@ def track_email_click(request):
     user_email = request.GET.get("email")
     organization_id = request.GET.get("organization")
     campaign_id = request.GET.get("campaign")
-    campaign_link = request.GET.get("company_link")
+    redirect_url = request.GET.get("company_link")
 
     if user_email and organization_id:
         try:
