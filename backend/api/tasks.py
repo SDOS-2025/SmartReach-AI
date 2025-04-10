@@ -11,7 +11,7 @@ def send_scheduled_email(self, organization_id, campaign_id, user_email, subject
     try:
         # Fetch organization and related instances
         organization = Organization.objects.get(org_id_id=organization_id)
-        name = 'apple'
+        name = User.objects.get(user_id=organization_id).username
         user = CompanyUser.objects.get(email=user_email)
         campaign = CampaignDetails.objects.get(campaign_id=campaign_id)
 
