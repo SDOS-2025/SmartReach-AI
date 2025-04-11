@@ -78,24 +78,31 @@ def auth_complete(request):
 
 @api_view(['GET'])
 def check_auth(request):
-    """Check if user is authenticated"""
+    """Check if user is authenticated and return status + token"""
     if request.user.is_authenticated:
-        result = ''
         user_id = cache.get('user_id')
         if user_id == 'Google':
-            return Response({'is_authenticated': True, 'status': 'Normal'})
+            # Generate token
+            token, _ = Token.objects.get_or_create(user=request.user)
+            return Response({
+                'is_authenticated': True,
+                'status': 'Normal',
+                'token': token.key
+            })
+
         if user_id is None:
             return Response({'is_authenticated': False}, status=401)
-    
+
         val = Organization.objects.filter(org_id=user_id).first()
-        if val is None:
-            result = 'Normal'
-        else:
-            result = 'Business'
+        result = 'Business' if val else 'Normal'
+        token, _ = Token.objects.get_or_create(user=request.user)
+
         return Response({
             'is_authenticated': True,
-            'status': result
+            'status': result,
+            'token': token.key
         })
+    
     return Response({'is_authenticated': False}, status=401)
 
 def convert_ist_to_utc(ist_date, ist_time):
