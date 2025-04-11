@@ -1,224 +1,189 @@
 "use client";
 
-import React, { useState, useEffect } from 'react';
-import NavigationMenu from '../components/NavigationMenu';
-import { useRouter } from 'next/navigation';
-import { PieChart, Pie, Cell, ResponsiveContainer, Legend, Tooltip } from 'recharts';
-import { UserPlus, Edit, Trash2, Search, X, Filter, Users, UserCheck } from 'lucide-react';
+import React, { useState, useEffect } from "react";
+import NavigationMenu from "../components/NavigationMenu";
+import { useRouter } from "next/navigation";
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from "recharts";
+import { UserPlus, Upload, Search, X } from "lucide-react";
 
-function AdminPage() {
+function CustomersPage() {
   const [users, setUsers] = useState([]);
   const [filteredUsers, setFilteredUsers] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [searchTerm, setSearchTerm] = useState('');
-  const [filterType, setFilterType] = useState('all'); // 'all', 'admin', 'customer'
-  const [filterStatus, setFilterStatus] = useState('all'); // 'all', 'active', 'inactive'
-  const [userStats, setUserStats] = useState([]);
-  const [showAddModal, setShowAddModal] = useState(false);
-  const [showEditModal, setShowEditModal] = useState(false);
-  const [showDeleteModal, setShowDeleteModal] = useState(false);
-  const [currentUser, setCurrentUser] = useState(null);
-  const [formData, setFormData] = useState({
-    name: '',
-    email: '',
-    role: 'customer',
-    status: 'active',
-    company: '',
-    phone: ''
+  const [chartData, setChartData] = useState([]);
+  const [selectedMetrics, setSelectedMetrics] = useState({
+    clickRate: true,
+    engagementDelay: true,
   });
-  
+  const [searchTerm, setSearchTerm] = useState("");
+  const [showAddModal, setShowAddModal] = useState(false);
+  const [showCsvModal, setShowCsvModal] = useState(false);
+  const [formData, setFormData] = useState({
+    email: "",
+    age: "",
+    first_name: "",
+    last_name: "",
+    gender: "",
+    location: "",
+    timezone: "",
+  });
+  const [csvFile, setCsvFile] = useState(null);
   const router = useRouter();
 
-  // Fetch users data
+  // Fetch users and engagement data
   useEffect(() => {
-    fetch('http://localhost:8000/api/users/', { credentials: 'include' })
-      .then((res) => res.json())
-      .then((data) => {
-        const usersData = data.users || [];
-        setUsers(usersData);
-        setFilteredUsers(usersData);
-        setIsLoading(false);
-        
-        // Calculate stats for the pie chart
-        const adminCount = usersData.filter(user => user.role === 'admin').length;
-        const customerCount = usersData.filter(user => user.role === 'customer').length;
-        const activeCount = usersData.filter(user => user.status === 'active').length;
-        const inactiveCount = usersData.filter(user => user.status === 'inactive').length;
-        
-        setUserStats([
-          { name: 'Admins', value: adminCount, color: '#8884d8' },
-          { name: 'Customers', value: customerCount, color: '#82ca9d' },
-          { name: 'Active', value: activeCount, color: '#4CAF50' },
-          { name: 'Inactive', value: inactiveCount, color: '#F44336' },
-        ]);
-      })
-      .catch((err) => {
-        console.error('Error fetching users:', err);
-        setIsLoading(false);
-      });
-  }, []);
+    const fetchData = async () => {
+      try {
+        const token = localStorage.getItem("authToken");
 
-  // Check for authentication token and admin role
-  useEffect(() => {
-    const token = localStorage.getItem("authToken");
-    const userRole = localStorage.getItem("userRole");
-    
-    if (!token) {
-      router.push("/login");
-    } else if (userRole !== 'admin') {
-      router.push("/admin");
-    }
+
+        // Fetch users (CompanyUser)
+        const usersResponse = await fetch("http://localhost:8000/api/get-company-users/", {
+          headers: { "Authorization": `Token ${token}` },
+          credentials: "include",
+        });
+        if (!usersResponse.ok) throw new Error("Failed to fetch users");
+        const usersData = await usersResponse.json();
+        setUsers(usersData.company_users || []);
+        setFilteredUsers(usersData.company_users || []);
+
+        // Fetch engagement data for chart
+        const chartResponse = await fetch("http://localhost:8000/api/user-engagement-stats/", {
+          headers: { "Authorization": `Token ${token}` },
+          credentials: "include",
+        });
+        if (!chartResponse.ok) throw new Error("Failed to fetch chart data");
+        const chartDataRaw = await chartResponse.json();
+        const formattedData = chartDataRaw.map(item => ({
+          name: item.user_email,
+          clickRate: item.avg_click_rate,
+          engagementDelay: item.avg_engagement_delay,
+        }));
+        setChartData(formattedData);
+      } catch (err) {
+        console.error("Error fetching data:", err);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchData();
   }, [router]);
 
-  // Handle filtering and searching
+  // Filter users based on search term
   useEffect(() => {
-    let results = users;
-    
-    // Apply search filter
-    if (searchTerm) {
-      results = results.filter(user => 
-        user.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        user.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        (user.company && user.company.toLowerCase().includes(searchTerm.toLowerCase()))
-      );
-    }
-    
-    // Apply type filter
-    if (filterType !== 'all') {
-      results = results.filter(user => user.role === filterType);
-    }
-    
-    // Apply status filter
-    if (filterStatus !== 'all') {
-      results = results.filter(user => user.status === filterStatus);
-    }
-    
+    const results = users.filter(user =>
+      `${user.first_name} ${user.last_name}`.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      user.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      (user.location && user.location.toLowerCase().includes(searchTerm.toLowerCase()))
+    );
     setFilteredUsers(results);
-  }, [searchTerm, filterType, filterStatus, users]);
+  }, [searchTerm, users]);
 
+  // Handle form input changes
   const handleInputChange = (e) => {
     const { name, value } = e.target;
-    setFormData({
-      ...formData,
-      [name]: value
-    });
+    setFormData({ ...formData, [name]: value });
   };
 
-  const handleAddUser = () => {
+  // Handle CSV file change
+  const handleCsvChange = (e) => {
+    setCsvFile(e.target.files[0]);
+  };
+
+  const handleAddUser = async () => {
     setIsLoading(true);
-    
-    fetch('http://localhost:8000/api/users/', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(formData),
-      credentials: 'include'
-    })
-      .then((res) => res.json())
-      .then((data) => {
-        if (data.success) {
-          // Add the new user to the list
-          setUsers([...users, data.user]);
-          setShowAddModal(false);
-          resetForm();
-        } else {
-          alert(data.message || 'Failed to add user');
-        }
-        setIsLoading(false);
-      })
-      .catch((err) => {
-        console.error('Error adding user:', err);
-        alert('An error occurred while adding the user');
-        setIsLoading(false);
+    try {
+      // const token = localStorage.getItem("authToken");
+      const token = localStorage.getItem("authToken")
+      console.log(token);
+      const response = await fetch("http://localhost:8000/api/add-user/", {
+        method: "POST",
+        headers:{"Content-Type":"application/json"},
+        body: JSON.stringify(formData),
       });
-  };
-
-  const handleEditUser = () => {
-    setIsLoading(true);
-    
-    fetch(`http://localhost:8000/api/users/${currentUser.id}`, {
-      method: 'PUT',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(formData),
-      credentials: 'include'
-    })
-      .then((res) => res.json())
-      .then((data) => {
-        if (data.success) {
-          // Update the user in the list
-          setUsers(users.map(user => 
-            user.id === currentUser.id ? { ...user, ...formData } : user
-          ));
-          setShowEditModal(false);
-          resetForm();
-        } else {
-          alert(data.message || 'Failed to update user');
-        }
-        setIsLoading(false);
-      })
-      .catch((err) => {
-        console.error('Error updating user:', err);
-        alert('An error occurred while updating the user');
-        setIsLoading(false);
-      });
-  };
-
-  const handleDeleteUser = () => {
-    setIsLoading(true);
-    
-    fetch(`/api/users/${currentUser.id}`, {
-      method: 'DELETE',
-      credentials: 'include'
-    })
-      .then((res) => res.json())
-      .then((data) => {
-        if (data.success) {
-          // Remove the user from the list
-          setUsers(users.filter(user => user.id !== currentUser.id));
-          setShowDeleteModal(false);
-        } else {
-          alert(data.message || 'Failed to delete user');
-        }
-        setIsLoading(false);
-      })
-      .catch((err) => {
-        console.error('Error deleting user:', err);
-        alert('An error occurred while deleting the user');
-        setIsLoading(false);
-      });
-  };
-
-  const openEditModal = (user) => {
-    setCurrentUser(user);
-    setFormData({
-      name: user.name,
-      email: user.email,
-      role: user.role,
-      status: user.status,
-      company: user.company || '',
-      phone: user.phone || ''
-    });
-    setShowEditModal(true);
-  };
-
-  const openDeleteModal = (user) => {
-    setCurrentUser(user);
-    setShowDeleteModal(true);
+  
+      if (!response.ok) throw new Error("Failed to add user");
+  
+      const data = await response.json();
+      setUsers([...users, data.user]);
+      setFilteredUsers([...users, data.user]);
+      setShowAddModal(false);
+      resetForm();
+    } catch (err) {
+      console.error("Error adding user:", err);
+      alert("Failed to add user");
+    } finally {
+      setIsLoading(false);
+    }
   };
   
+
+  // Add users via CSV
+  const handleCsvUpload = async () => {
+    if (!csvFile) {
+      alert("Please select a CSV file");
+      return;
+    }
+    setIsLoading(true);
+    try {
+      const token = localStorage.getItem("authToken");
+      const formData = new FormData();
+      formData.append("file", csvFile);
+      const response = await fetch("http://localhost:8000/api/upload-company-users-csv/", {
+        method: "POST",
+        body: formData,
+      });
+      if (!response.ok) throw new Error("Failed to upload CSV");
+      const data = await response.json();
+      setUsers([...users, ...data.users]);
+      setFilteredUsers([...users, ...data.users]); // Update filtered list too
+      setShowCsvModal(false);
+      setCsvFile(null);
+    } catch (err) {
+      console.error("Error uploading CSV:", err);
+      alert("Failed to upload CSV");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // Reset form data
   const resetForm = () => {
     setFormData({
-      name: '',
-      email: '',
-      role: 'customer',
-      status: 'active',
-      company: '',
-      phone: ''
+      email: "",
+      age: "",
+      first_name: "",
+      last_name: "",
+      gender: "",
+      location: "",
+      timezone: "",
     });
-    setCurrentUser(null);
+  };
+
+  // Toggle metrics for chart
+  const toggleMetric = (metric) => {
+    setSelectedMetrics({ ...selectedMetrics, [metric]: !selectedMetrics[metric] });
+  };
+
+  // Custom tooltip for chart
+  const CustomTooltip = ({ active, payload, label }) => {
+    if (active && payload && payload.length) {
+      const data = payload[0].payload;
+      return (
+        <div className="bg-[#252B61] border border-[#394082] p-3 rounded shadow-lg opacity-100">
+          <p className="font-medium text-white">{data.name}</p>
+          <div className="mt-2 space-y-1">
+            {payload.map((entry, index) => (
+              <p key={`item-${index}`} style={{ color: entry.color }}>
+                {entry.name}: {entry.value.toFixed(2)}
+              </p>
+            ))}
+          </div>
+        </div>
+      );
+    }
+    return null;
   };
 
   return (
@@ -226,241 +191,174 @@ function AdminPage() {
       <div className="h-20 flex-none">
         <NavigationMenu />
       </div>
-      <div className="flex flex-auto flex-col lg:flex-row">
-        {/* Main Content */}
+      <div className="flex flex-auto flex-col">
         <div className="h-[calc(100vh-5rem)] w-screen p-4 lg:p-10 flex flex-col overflow-auto bg-[#0F142E]">
-          <div className="flex justify-between items-center">
-            <h1 className="text-2xl font-bold text-white">Admin Dashboard</h1>
-            <button
-              onClick={() => setShowAddModal(true)}
-              className="bg-blue-600 hover:bg-blue-700 text-white py-2 px-4 rounded-lg flex items-center transition-all duration-300"
-            >
-              <UserPlus size={18} className="mr-2" />
-              Add User
-            </button>
+          <div className="flex justify-between items-center mb-6">
+            <h1 className="text-2xl font-bold text-white">Users</h1>
+            <div className="flex space-x-4">
+              <button
+                onClick={() => setShowAddModal(true)}
+                className="bg-blue-600 hover:bg-blue-700 text-white py-2 px-4 rounded-lg flex items-center transition-all"
+              >
+                <UserPlus size={18} className="mr-2" />
+                Add User
+              </button>
+              <button
+                onClick={() => setShowCsvModal(true)}
+                className="bg-green-600 hover:bg-green-700 text-white py-2 px-4 rounded-lg flex items-center transition-all"
+              >
+                <Upload size={18} className="mr-2" />
+                Upload CSV
+              </button>
+            </div>
           </div>
-          
-          {/* Stats Section */}
+
+          {/* Search Section */}
+          <div className="mb-6">
+            <div className="relative w-full md:w-64">
+              <input
+                type="text"
+                placeholder="Search users..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="bg-[#1A1F4A] text-white w-full pl-10 pr-10 py-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              />
+              <Search size={16} className="absolute left-3 top-2.5 text-gray-400" />
+              {searchTerm && (
+                <button
+                  onClick={() => setSearchTerm("")}
+                  className="absolute right-3 top-2.5 text-gray-400 hover:text-white"
+                >
+                  <X size={16} />
+                </button>
+              )}
+            </div>
+            {searchTerm && (
+              <p className="text-gray-400 mt-2">
+                {filteredUsers.length} {filteredUsers.length === 1 ? "result" : "results"} for "{searchTerm}"
+              </p>
+            )}
+          </div>
+
+          {/* Chart Section */}
           <div className="mt-6 bg-[#1A1F4A] rounded-lg p-4 shadow-lg">
-            <h2 className="text-lg font-semibold text-white mb-4">User Statistics</h2>
+            <h2 className="text-lg font-semibold text-white mb-4">User Engagement Statistics</h2>
             <div className="flex flex-col md:flex-row">
-              {/* Chart */}
-              <div className="md:w-1/2 h-64">
-                <ResponsiveContainer width="100%" height="100%">
-                  <PieChart>
-                    <Pie
-                      data={userStats.slice(0, 2)} // Only admin/customer data
-                      cx="50%"
-                      cy="50%"
-                      outerRadius={80}
-                      innerRadius={40}
-                      fill="#8884d8"
-                      paddingAngle={5}
-                      dataKey="value"
-                      label={({name, percent}) => `${name}: ${(percent * 100).toFixed(0)}%`}
-                    >
-                      {userStats.slice(0, 2).map((entry, index) => (
-                        <Cell key={`cell-${index}`} fill={entry.color} />
-                      ))}
-                    </Pie>
-                    <Tooltip />
-                    <Legend />
-                  </PieChart>
-                </ResponsiveContainer>
+              <div className="flex-grow">
+                <div className="h-64">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <LineChart data={chartData} margin={{ top: 5, right: 30, left: 0, bottom: 5 }}>
+                      <CartesianGrid strokeDasharray="3 3" stroke="#333" />
+                      <XAxis dataKey="name" stroke="#CCCCCC" />
+                      <YAxis stroke="#CCCCCC" />
+                      <Tooltip content={<CustomTooltip />} />
+                      <Legend />
+                      {selectedMetrics.clickRate && (
+                        <Line
+                          type="monotone"
+                          dataKey="clickRate"
+                          name="Avg Click Rate"
+                          stroke="#8884d8"
+                          activeDot={{ r: 8 }}
+                          strokeWidth={2}
+                        />
+                      )}
+                      {selectedMetrics.engagementDelay && (
+                        <Line
+                          type="monotone"
+                          dataKey="engagementDelay"
+                          name="Avg Engagement Delay (s)"
+                          stroke="#ffc658"
+                          activeDot={{ r: 8 }}
+                          strokeWidth={2}
+                        />
+                      )}
+                    </LineChart>
+                  </ResponsiveContainer>
+                </div>
               </div>
-              
-              {/* Stats Cards */}
-              <div className="md:w-1/2 flex flex-wrap justify-center items-center">
-                <div className="w-1/2 p-2">
-                  <div className="bg-[#252B61] rounded-lg p-4 text-center">
-                    <Users size={24} className="mx-auto text-blue-400 mb-2" />
-                    <h3 className="text-gray-300 text-sm">Total Users</h3>
-                    <p className="text-white text-xl font-bold">{users.length}</p>
+              <div className="md:w-48 mt-4 md:mt-0 md:ml-6 flex flex-row md:flex-col justify-center md:justify-start">
+                <div className="text-white font-medium mb-2 md:mb-4">Metrics:</div>
+                <div className="flex flex-row md:flex-col space-x-4 md:space-x-0 md:space-y-3">
+                  <div className="flex items-center">
+                    <input
+                      type="checkbox"
+                      id="clickRate"
+                      checked={selectedMetrics.clickRate}
+                      onChange={() => toggleMetric("clickRate")}
+                      className="mr-2"
+                    />
+                    <label htmlFor="clickRate" className="text-white flex items-center">
+                      <span className="w-3 h-3 bg-[#8884d8] rounded-full inline-block mr-2"></span>
+                      Avg Click Rate
+                    </label>
                   </div>
-                </div>
-                <div className="w-1/2 p-2">
-                  <div className="bg-[#252B61] rounded-lg p-4 text-center">
-                    <UserCheck size={24} className="mx-auto text-green-400 mb-2" />
-                    <h3 className="text-gray-300 text-sm">Active Users</h3>
-                    <p className="text-white text-xl font-bold">
-                      {users.filter(user => user.status === 'active').length}
-                    </p>
-                  </div>
-                </div>
-                <div className="w-1/2 p-2">
-                  <div className="bg-[#252B61] rounded-lg p-4 text-center">
-                    <div className="mx-auto text-purple-400 mb-2 flex justify-center">
-                      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                        <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
-                        <circle cx="9" cy="7" r="4" stroke="currentColor" strokeWidth="2"/>
-                        <path d="M22 21v-2a4 4 0 0 0-3-3.87" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
-                        <path d="M16 3.13a4 4 0 0 1 0 7.75" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
-                      </svg>
-                    </div>
-                    <h3 className="text-gray-300 text-sm">Admins</h3>
-                    <p className="text-white text-xl font-bold">
-                      {users.filter(user => user.role === 'admin').length}
-                    </p>
-                  </div>
-                </div>
-                <div className="w-1/2 p-2">
-                  <div className="bg-[#252B61] rounded-lg p-4 text-center">
-                    <div className="mx-auto text-green-400 mb-2 flex justify-center">
-                      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                        <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
-                        <circle cx="9" cy="7" r="4" stroke="currentColor" strokeWidth="2"/>
-                      </svg>
-                    </div>
-                    <h3 className="text-gray-300 text-sm">Customers</h3>
-                    <p className="text-white text-xl font-bold">
-                      {users.filter(user => user.role === 'customer').length}
-                    </p>
+                  <div className="flex items-center">
+                    <input
+                      type="checkbox"
+                      id="engagementDelay"
+                      checked={selectedMetrics.engagementDelay}
+                      onChange={() => toggleMetric("engagementDelay")}
+                      className="mr-2"
+                    />
+                    <label htmlFor="engagementDelay" className="text-white flex items-center">
+                      <span className="w-3 h-3 bg-[#ffc658] rounded-full inline-block mr-2"></span>
+                      Avg Engagement Delay
+                    </label>
                   </div>
                 </div>
               </div>
             </div>
           </div>
-          
+
           {/* Users List */}
           <div className="mt-8">
-            <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6">
-              <h2 className="text-lg font-semibold text-white mb-4 md:mb-0">User Management</h2>
-              {/* Search and Filter Section */}
-              <div className="flex flex-col sm:flex-row w-full md:w-auto gap-3">
-                {/* Search */}
-                <div className="relative">
-                  <input
-                    type="text"
-                    placeholder="Search users..."
-                    value={searchTerm}
-                    onChange={(e) => setSearchTerm(e.target.value)}
-                    className="bg-[#1A1F4A] text-white w-full pl-10 pr-10 py-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  />
-                  <Search size={16} className="absolute left-3 top-2.5 text-gray-400" />
-                  {searchTerm && (
-                    <button
-                      onClick={() => setSearchTerm('')}
-                      className="absolute right-3 top-2.5 text-gray-400 hover:text-white"
-                    >
-                      <X size={16} />
-                    </button>
-                  )}
-                </div>
-                
-                {/* Filters */}
-                <div className="flex gap-2">
-                  <select
-                    value={filterType}
-                    onChange={(e) => setFilterType(e.target.value)}
-                    className="bg-[#1A1F4A] text-white px-3 py-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  >
-                    <option value="all">All Types</option>
-                    <option value="admin">Admins</option>
-                    <option value="customer">Customers</option>
-                  </select>
-                  
-                  <select
-                    value={filterStatus}
-                    onChange={(e) => setFilterStatus(e.target.value)}
-                    className="bg-[#1A1F4A] text-white px-3 py-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  >
-                    <option value="all">All Status</option>
-                    <option value="active">Active</option>
-                    <option value="inactive">Inactive</option>
-                  </select>
-                </div>
-              </div>
-            </div>
-            
+            <h2 className="text-lg font-semibold text-white mb-4">User List</h2>
             {isLoading ? (
               <div className="flex justify-center items-center py-10">
                 <p className="text-gray-400">Loading users...</p>
               </div>
             ) : (
-              <>
-                {searchTerm && (
-                  <p className="text-gray-400 mb-4">
-                    {filteredUsers.length} {filteredUsers.length === 1 ? 'result' : 'results'} for "{searchTerm}"
-                  </p>
-                )}
-                
-                {/* Users Table */}
-                <div className="overflow-x-auto rounded-lg shadow">
-                  <table className="min-w-full divide-y divide-gray-700">
-                    <thead className="bg-[#252B61]">
-                      <tr>
-                        <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">
-                          Name
-                        </th>
-                        <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">
-                          Email
-                        </th>
-                        <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">
-                          Role
-                        </th>
-                        <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">
-                          Status
-                        </th>
-                        <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">
-                          Company
-                        </th>
-                        <th scope="col" className="px-6 py-3 text-right text-xs font-medium text-gray-300 uppercase tracking-wider">
-                          Actions
-                        </th>
-                      </tr>
-                    </thead>
-                    <tbody className="bg-[#1A1F4A] divide-y divide-gray-700">
-                      {filteredUsers.length > 0 ? (
-                        filteredUsers.map((user) => (
-                          <tr key={user.id} className="hover:bg-[#252B61]">
-                            <td className="px-6 py-4 whitespace-nowrap">
-                              <div className="font-medium text-white">{user.name}</div>
-                            </td>
-                            <td className="px-6 py-4 whitespace-nowrap">
-                              <div className="text-gray-300">{user.email}</div>
-                            </td>
-                            <td className="px-6 py-4 whitespace-nowrap">
-                              <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${user.role === 'admin' ? 'bg-purple-100 text-purple-800' : 'bg-green-100 text-green-800'}`}>
-                                {user.role}
-                              </span>
-                            </td>
-                            <td className="px-6 py-4 whitespace-nowrap">
-                              <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
-                                user.status === 'active' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
-                              }`}>
-                                {user.status}
-                              </span>
-                            </td>
-                            <td className="px-6 py-4 whitespace-nowrap text-gray-300">
-                              {user.company || '-'}
-                            </td>
-                            <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                              <button 
-                                onClick={() => openEditModal(user)}
-                                className="text-blue-400 hover:text-blue-300 mr-3"
-                              >
-                                <Edit size={18} />
-                              </button>
-                              <button 
-                                onClick={() => openDeleteModal(user)}
-                                className="text-red-400 hover:text-red-300"
-                              >
-                                <Trash2 size={18} />
-                              </button>
-                            </td>
-                          </tr>
-                        ))
-                      ) : (
-                        <tr>
-                          <td colSpan="6" className="px-6 py-4 whitespace-nowrap text-center text-gray-400">
-                            No users found matching your search criteria.
+              <div className="overflow-x-auto rounded-lg shadow">
+                <table className="min-w-full divide-y divide-gray-700">
+                  <thead className="bg-[#252B61]">
+                    <tr>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">Name</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">Email</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">Age</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">Gender</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">Location</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">Timezone</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">Date Joined</th>
+                    </tr>
+                  </thead>
+                  <tbody className="bg-[#1A1F4A] divide-y divide-gray-700">
+                    {filteredUsers.length > 0 ? (
+                      filteredUsers.map((user) => (
+                        <tr key={user.id} className="hover:bg-[#252B61]">
+                          <td className="px-6 py-4 whitespace-nowrap">
+                            <div className="font-medium text-white">{`${user.first_name} ${user.last_name}`}</div>
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap text-gray-300">{user.email}</td>
+                          <td className="px-6 py-4 whitespace-nowrap text-gray-300">{user.age || "-"}</td>
+                          <td className="px-6 py-4 whitespace-nowrap text-gray-300">{user.gender || "-"}</td>
+                          <td className="px-6 py-4 whitespace-nowrap text-gray-300">{user.location || "-"}</td>
+                          <td className="px-6 py-4 whitespace-nowrap text-gray-300">{user.timezone || "-"}</td>
+                          <td className="px-6 py-4 whitespace-nowrap text-gray-300">
+                            {user.date_joined ? new Date(user.date_joined).toLocaleDateString() : "-"}
                           </td>
                         </tr>
-                      )}
-                    </tbody>
-                  </table>
-                </div>
-              </>
+                      ))
+                    ) : (
+                      <tr>
+                        <td colSpan="7" className="px-6 py-4 whitespace-nowrap text-center text-gray-400">
+                          No users found matching your search criteria.
+                        </td>
+                      </tr>
+                    )}
+                  </tbody>
+                </table>
+              </div>
             )}
           </div>
         </div>
@@ -473,17 +371,6 @@ function AdminPage() {
             <h2 className="text-xl font-bold text-white mb-4">Add New User</h2>
             <div className="space-y-4">
               <div>
-                <label className="block text-gray-300 text-sm font-medium mb-1">Name</label>
-                <input
-                  type="text"
-                  name="name"
-                  value={formData.name}
-                  onChange={handleInputChange}
-                  className="w-full bg-[#252B61] text-white px-3 py-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  placeholder="Enter full name"
-                />
-              </div>
-              <div>
                 <label className="block text-gray-300 text-sm font-medium mb-1">Email</label>
                 <input
                   type="email"
@@ -491,55 +378,75 @@ function AdminPage() {
                   value={formData.email}
                   onChange={handleInputChange}
                   className="w-full bg-[#252B61] text-white px-3 py-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  placeholder="Enter email address"
-                />
-              </div>
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-gray-300 text-sm font-medium mb-1">Role</label>
-                  <select
-                    name="role"
-                    value={formData.role}
-                    onChange={handleInputChange}
-                    className="w-full bg-[#252B61] text-white px-3 py-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  >
-                    <option value="customer">Customer</option>
-                    <option value="admin">Admin</option>
-                  </select>
-                </div>
-                <div>
-                  <label className="block text-gray-300 text-sm font-medium mb-1">Status</label>
-                  <select
-                    name="status"
-                    value={formData.status}
-                    onChange={handleInputChange}
-                    className="w-full bg-[#252B61] text-white px-3 py-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  >
-                    <option value="active">Active</option>
-                    <option value="inactive">Inactive</option>
-                  </select>
-                </div>
-              </div>
-              <div>
-                <label className="block text-gray-300 text-sm font-medium mb-1">Company</label>
-                <input
-                  type="text"
-                  name="company"
-                  value={formData.company}
-                  onChange={handleInputChange}
-                  className="w-full bg-[#252B61] text-white px-3 py-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  placeholder="Company name (optional)"
+                  placeholder="Enter email"
                 />
               </div>
               <div>
-                <label className="block text-gray-300 text-sm font-medium mb-1">Phone</label>
+                <label className="block text-gray-300 text-sm font-medium mb-1">Age</label>
                 <input
-                  type="text"
-                  name="phone"
-                  value={formData.phone}
+                  type="number"
+                  name="age"
+                  value={formData.age}
                   onChange={handleInputChange}
                   className="w-full bg-[#252B61] text-white px-3 py-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  placeholder="Phone number (optional)"
+                  placeholder="Enter age"
+                />
+              </div>
+              <div>
+                <label className="block text-gray-300 text-sm font-medium mb-1">First Name</label>
+                <input
+                  type="text"
+                  name="first_name"
+                  value={formData.first_name}
+                  onChange={handleInputChange}
+                  className="w-full bg-[#252B61] text-white px-3 py-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  placeholder="Enter first name"
+                />
+              </div>
+              <div>
+                <label className="block text-gray-300 text-sm font-medium mb-1">Last Name</label>
+                <input
+                  type="text"
+                  name="last_name"
+                  value={formData.last_name}
+                  onChange={handleInputChange}
+                  className="w-full bg-[#252B61] text-white px-3 py-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  placeholder="Enter last name"
+                />
+              </div>
+              <div>
+                <label className="block text-gray-300 text-sm font-medium mb-1">Gender</label>
+                <select
+                  name="gender"
+                  value={formData.gender}
+                  onChange={handleInputChange}
+                  className="w-full bg-[#252B61] text-white px-3 py-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                >
+                  <option value="">Select gender</option>
+                  <option value="M">Male</option>
+                  <option value="F">Female</option>
+                </select>
+              </div>
+              <div>
+                <label className="block text-gray-300 text-sm font-medium mb-1">Location</label>
+                <input
+                  type="text"
+                  name="location"
+                  value={formData.location}
+                  onChange={handleInputChange}
+                  className="w-full bg-[#252B61] text-white px-3 py-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  placeholder="Enter location"
+                />
+              </div>
+              <div>
+                <label className="block text-gray-300 text-sm font-medium mb-1">Timezone</label>
+                <input
+                  type="text"
+                  name="timezone"
+                  value={formData.timezone}
+                  onChange={handleInputChange}
+                  className="w-full bg-[#252B61] text-white px-3 py-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  placeholder="Enter timezone (e.g., IST)"
                 />
               </div>
             </div>
@@ -558,129 +465,48 @@ function AdminPage() {
                 disabled={isLoading}
                 className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50"
               >
-                {isLoading ? 'Adding...' : 'Add User'}
+                {isLoading ? "Adding..." : "Add User"}
               </button>
             </div>
           </div>
         </div>
       )}
 
-      {/* Edit User Modal */}
-      {showEditModal && (
+      {/* CSV Upload Modal */}
+      {showCsvModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
           <div className="bg-[#1A1F4A] rounded-lg w-full max-w-md p-6 shadow-2xl">
-            <h2 className="text-xl font-bold text-white mb-4">Edit User</h2>
+            <h2 className="text-xl font-bold text-white mb-4">Upload Users via CSV</h2>
             <div className="space-y-4">
               <div>
-                <label className="block text-gray-300 text-sm font-medium mb-1">Name</label>
+                <label className="block text-gray-300 text-sm font-medium mb-1">CSV File</label>
                 <input
-                  type="text"
-                  name="name"
-                  value={formData.name}
-                  onChange={handleInputChange}
+                  type="file"
+                  accept=".csv"
+                  onChange={handleCsvChange}
                   className="w-full bg-[#252B61] text-white px-3 py-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                 />
-              </div>
-              <div>
-                <label className="block text-gray-300 text-sm font-medium mb-1">Email</label>
-                <input
-                  type="email"
-                  name="email"
-                  value={formData.email}
-                  onChange={handleInputChange}
-                  className="w-full bg-[#252B61] text-white px-3 py-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                />
-              </div>
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-gray-300 text-sm font-medium mb-1">Role</label>
-                  <select
-                    name="role"
-                    value={formData.role}
-                    onChange={handleInputChange}
-                    className="w-full bg-[#252B61] text-white px-3 py-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  >
-                    <option value="customer">Customer</option>
-                    <option value="admin">Admin</option>
-                  </select>
-                </div>
-                <div>
-                  <label className="block text-gray-300 text-sm font-medium mb-1">Status</label>
-                  <select
-                    name="status"
-                    value={formData.status}
-                    onChange={handleInputChange}
-                    className="w-full bg-[#252B61] text-white px-3 py-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  >
-                    <option value="active">Active</option>
-                    <option value="inactive">Inactive</option>
-                  </select>
-                </div>
-              </div>
-              <div>
-                <label className="block text-gray-300 text-sm font-medium mb-1">Company</label>
-                <input
-                  type="text"
-                  name="company"
-                  value={formData.company}
-                  onChange={handleInputChange}
-                  className="w-full bg-[#252B61] text-white px-3 py-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                />
-              </div>
-              <div>
-                <label className="block text-gray-300 text-sm font-medium mb-1">Phone</label>
-                <input
-                  type="text"
-                  name="phone"
-                  value={formData.phone}
-                  onChange={handleInputChange}
-                  className="w-full bg-[#252B61] text-white px-3 py-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                />
+                <p className="text-gray-400 text-xs mt-2">
+                  Expected columns: email, age, first_name, last_name, gender, location, timezone
+                </p>
               </div>
             </div>
             <div className="mt-6 flex justify-end space-x-3">
               <button
                 onClick={() => {
-                  setShowEditModal(false);
-                  resetForm();
+                  setShowCsvModal(false);
+                  setCsvFile(null);
                 }}
                 className="px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors"
               >
                 Cancel
               </button>
               <button
-                onClick={handleEditUser}
-                disabled={isLoading}
-                className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50"
+                onClick={handleCsvUpload}
+                disabled={isLoading || !csvFile}
+                className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors disabled:opacity-50"
               >
-                {isLoading ? 'Saving...' : 'Save Changes'}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Delete Confirmation Modal */}
-      {showDeleteModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-[#1A1F4A] rounded-lg w-full max-w-md p-6 shadow-2xl">
-            <h2 className="text-xl font-bold text-white mb-4">Confirm Delete</h2>
-            <p className="text-gray-300">
-              Are you sure you want to delete the user <span className="font-semibold text-white">{currentUser?.name}</span>? This action cannot be undone.
-            </p>
-            <div className="mt-6 flex justify-end space-x-3">
-              <button
-                onClick={() => setShowDeleteModal(false)}
-                className="px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors"
-              >
-                Cancel
-              </button>
-              <button
-                onClick={handleDeleteUser}
-                disabled={isLoading}
-                className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors disabled:opacity-50"
-              >
-                {isLoading ? 'Deleting...' : 'Delete User'}
+                {isLoading ? "Uploading..." : "Upload CSV"}
               </button>
             </div>
           </div>
@@ -690,4 +516,4 @@ function AdminPage() {
   );
 }
 
-export default AdminPage;
+export default CustomersPage;

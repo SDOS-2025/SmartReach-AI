@@ -1,0 +1,4 @@
+first_name,last_name,email,age,gender,location,timezone
+Aisha,Kapoor,aisha.kapoor@example.com,24,F,Mumbai,IST
+Karthik,Reddy,karthik.reddy@example.com,28,M,Hyderabad,IST
+Priya,Sharma,priya.sharma@example.com,26,F,Bangalore,IST

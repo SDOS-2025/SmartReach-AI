@@ -32,7 +32,7 @@ export async function middleware(request) {
           return NextResponse.redirect(new URL('/home', request.url));
       }
     }
-    if (pathname === '/write-email' || pathname === '/home' || pathname.startsWith('/dashboard')) {
+    if (pathname === '/write-email' || pathname === '/home' || pathname.startsWith('/dashboard') || pathname === '/admin') {
         // Fetch auth status from your API
         const authResponse = await fetch('http://localhost:8000/api/check-auth', {
         method: 'GET',

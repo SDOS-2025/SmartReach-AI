@@ -24,7 +24,10 @@ from .views import (
     get_email,
     get_email_original,
     get_email_normal,
-    user_logout
+    user_logout,
+    get_company_users,
+    add_user,
+    upload_company_users_csv
 
 )
 
@@ -53,6 +56,9 @@ urlpatterns = [
     path('get-email/', get_email),
     path('get_email/', get_email_normal),
     path('get-email-original/', get_email_original),
-    path('logout/', user_logout)
+    path('logout/', user_logout),
+    path('get-company-users/',get_company_users),
+    path('add-user/',add_user),
+    path('upload-company-users-csv/',upload_company_users_csv)
 
 ]

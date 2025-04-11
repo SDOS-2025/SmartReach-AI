@@ -2,6 +2,8 @@ import json
 from datetime import datetime,timedelta
 import pytz
 import pandas as pd
+from django.core.validators import validate_email
+from django.core.exceptions import ValidationError
 from django.shortcuts import render, redirect
 from django.core.mail import send_mail, get_connection
 from django.http import JsonResponse
@@ -1000,3 +1002,111 @@ def get_email_normal(request):
 
     return JsonResponse(html_template)
 
+@api_view(['GET'])
+def get_company_users(request):
+    org_id = cache.get('org_id')
+    print(org_id)
+    company_users = CompanyUser.objects.filter(org_id_id = org_id)
+    return JsonResponse({'company_users':list(company_users.values())})
+
+
+
+@api_view(["POST"])
+def add_user(request):
+    print("Received data:", request.data)
+    org_id = cache.get("org_id")
+    print(org_id)
+    data = request.data
+    required_fields = ["first_name", "last_name", "email", "age", "gender", "location", "timezone"]
+
+    for field in required_fields:
+        if field not in data or not str(data[field]).strip():
+            return Response({"error": f"{field} is required."}, status=status.HTTP_400_BAD_REQUEST)
+
+    try:
+        validate_email(data["email"])
+    except ValidationError:
+        return Response({"error": "Invalid email format."}, status=status.HTTP_400_BAD_REQUEST)
+
+    if CompanyUser.objects.filter(email=data["email"]).exists():
+        return Response({"error": "User with this email already exists."}, status=status.HTTP_409_CONFLICT)
+
+    try:
+        user = CompanyUser.objects.create(
+            first_name=data["first_name"],
+            last_name=data["last_name"],
+            email=data["email"],
+            age=data["age"],
+            gender=data["gender"],
+            location=data["location"],
+            timezone=data["timezone"],
+            date_joined=now(),
+            org_id_id = 4
+        )
+
+
+        return Response({
+            "user": {
+                "id": user.id,
+                "first_name": user.first_name,
+                "last_name": user.last_name,
+                "email": user.email,
+                "age": user.age,
+                "gender": user.gender,
+                "location": user.location,
+                "timezone": user.timezone,
+                "date_joined": user.date_joined,
+                "org_id_id":org_id
+            }
+        }, status=status.HTTP_201_CREATED)
+
+    except Exception as e:
+        return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+    
+
+@api_view(['POST'])
+def upload_company_users_csv(request):
+    if "file" not in request.FILES:
+        return Response({"error": "No file uploaded."}, status=status.HTTP_400_BAD_REQUEST)
+
+    file = request.FILES["file"]
+    decoded_file = TextIOWrapper(file.file, encoding="utf-8")
+    reader = csv.DictReader(decoded_file)
+
+    created_users = []
+    for row in reader:
+        email = row.get("email")
+        try:
+            validate_email(email)
+        except ValidationError:
+            continue  # Skip invalid emails
+
+        if CompanyUser.objects.filter(email=email).exists():
+            continue  # Skip duplicates
+
+        try:
+            user = CompanyUser.objects.create(
+                first_name=row.get("first_name", ""),
+                last_name=row.get("last_name", ""),
+                email=email,
+                age=row.get("age"),
+                gender=row.get("gender"),
+                location=row.get("location"),
+                timezone=row.get("timezone"),
+                date_joined= now()
+            )
+            created_users.append({
+                "id": user.id,
+                "first_name": user.first_name,
+                "last_name": user.last_name,
+                "email": user.email,
+                "age": user.age,
+                "gender": user.gender,
+                "location": user.location,
+                "timezone": user.timezone,
+                "date_joined": user.date_joined,
+            })
+        except Exception:
+            continue
+
+    return Response({"users": created_users}, status=status.HTTP_201_CREATED)
