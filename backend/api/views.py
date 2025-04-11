@@ -22,14 +22,13 @@ from django.contrib.auth import login, authenticate, logout, get_user_model
 from api.models import User, Organization, CompanyUser, CampaignDetails, CompanyUserEngagement, CampaignStatistics
 from .sto_model import get_optimal_send_time
 from .tasks import send_scheduled_email
-from .LLM_template_generator import generate_content
 from django.http import JsonResponse, HttpResponseRedirect
 from django.utils.timezone import now
 from .models import EmailLog
 from django.core.cache import cache
 from rest_framework.authtoken.models import Token
 import logging
-from LLM_template_generator import TemplateGenerator
+from .LLM_template_generator import TemplateGenerator
 logger = logging.getLogger(__name__)
 
 
@@ -579,7 +578,7 @@ def generate_template(request):
         'preferred_length': preferred_length,
         'cta': cta,
         'email_structure': email_structure,
-        'company_link': company_link,
+        # 'company_link': company_link,
         "use_rag": False,
         "vector_db_path": None 
     }
@@ -1043,7 +1042,7 @@ def add_user(request):
             location=data["location"],
             timezone=data["timezone"],
             date_joined=now(),
-            org_id_id = 4
+            org_id_id = cache.get('org_id')
         )
 
 
@@ -1081,7 +1080,7 @@ def upload_company_users_csv(request):
         try:
             validate_email(email)
         except ValidationError:
-            continue  # Skip invalid emails
+            print('invalid email')  # Skip invalid emails
 
         if CompanyUser.objects.filter(email=email).exists():
             continue  # Skip duplicates
@@ -1095,8 +1094,10 @@ def upload_company_users_csv(request):
                 gender=row.get("gender"),
                 location=row.get("location"),
                 timezone=row.get("timezone"),
-                date_joined= now()
+                date_joined= now(),
+                org_id_id = cache.get("org_id")
             )
+            print(user)
             created_users.append({
                 "id": user.id,
                 "first_name": user.first_name,
@@ -1107,9 +1108,10 @@ def upload_company_users_csv(request):
                 "location": user.location,
                 "timezone": user.timezone,
                 "date_joined": user.date_joined,
+                "org_id_id":user.org_id_id
             })
-        except Exception:
-            continue
+        except Exception as e:
+            print(e)
 
     return Response({"users": created_users}, status=status.HTTP_201_CREATED)
 @csrf_exempt
@@ -1118,7 +1120,6 @@ def delete_users(request):
     user_ids = request.data.get('user_ids', [])
     if not isinstance(user_ids, list):
         return Response({"error": "user_ids must be a list"}, status=status.HTTP_400_BAD_REQUEST)
-    
     deleted_count, _ = CompanyUser.objects.filter(id__in=user_ids).delete()
     return Response({"status": "success", "deleted": deleted_count}, status=status.HTTP_200_OK)
 
