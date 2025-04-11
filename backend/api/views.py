@@ -5,6 +5,7 @@ import pandas as pd
 from django.shortcuts import render, redirect
 from django.core.mail import send_mail, get_connection
 from django.http import JsonResponse
+from django.http import HttpResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.contrib import messages
 from django.utils.timezone import make_aware
@@ -56,11 +57,33 @@ def login_view(request):
     # 🔑 Create or fetch the token manually
     token, _ = Token.objects.get_or_create(user=user)
 
-    return Response({
+    response = Response({
         'message': 'Login successful',
         'status': 'Normal' if org is None else 'Business',
-        'token': token.key
+        # 'token': token.key  # Still included for reference, but frontend won't use it directly
     })
+    response.set_cookie(
+        'authToken',
+        token.key,
+        httponly=True,  # Prevent JavaScript access
+        max_age=3600,   # 1-hour expiry
+    )
+
+    return response
+
+@csrf_exempt
+@api_view(['GET'])
+def user_logout(request):
+    """Log out the user and delete authToken cookie"""
+    cache.delete('user_id')
+    cache.delete('org_id')
+    cache.delete('campaign_id')
+    cache.delete('Template')
+    # logout(request)  
+    response = Response({'message': 'Logged out successfully'})
+    response.delete_cookie('authToken')
+    return response
+
 
 
 @api_view(['GET'])
@@ -74,11 +97,33 @@ def auth_complete(request):
         cache.set('user_id', 'Google', timeout=3600)
         token, _ = Token.objects.get_or_create(user=request.user)
 
-        return Response({
-            'message': 'Login successful',
-            'status': 'Normal',
-            'token': token.key
-        })
+        print(token)
+
+        response = HttpResponse(
+            f"""
+            <!DOCTYPE html>
+            <html>
+            <head>
+                <title>Redirecting...</title>
+            </head>
+            <body>
+                <script>
+                    window.location.href = 'http://localhost:3000/write_email';
+
+                </script>
+            </body>
+            </html>
+            """
+        )
+
+        response.set_cookie(
+            'authToken',
+            token.key,
+            httponly=True,  # Prevent JavaScript access
+            max_age=3600  # 1-hour expiry
+        )
+
+        return response
 
     else:
         return Response({'error': 'User not authenticated'}, status=401)
@@ -107,7 +152,7 @@ def check_auth(request):
         return Response({
             'is_authenticated': True,
             'status': result,
-            'token': token.key
+            # 'token': token.key
         })
     
     return Response({'is_authenticated': False}, status=401)
@@ -216,7 +261,6 @@ def send_time_optim(request):
 
 
 
-    return Response({'message': 'Send time optimization successful'})
 
 
 @api_view(['GET'])
@@ -956,9 +1000,3 @@ def get_email_normal(request):
 
     return JsonResponse(html_template)
 
-def logout(request):
-    cache.delete('user_id')
-    cache.delete('org_id')
-    cache.delete('campaign_id')
-    cache.delete('Template')
-    return JsonResponse({'message': 'Logged out successfully'})

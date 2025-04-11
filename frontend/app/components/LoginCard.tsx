@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState , useRef } from 'react';
+import React, { useState , useRef ,useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -63,9 +63,16 @@ const LoginCard = ({ view, setView }: LoginCardProps) => {
       }
       const data = await response.json();
       console.log('Login response:', data);
-      if (data.message === 'Login successful' && data.token) {
-        localStorage.setItem("authToken", data.token); // Save token for auth state
-        window.location.href = '/home';
+      if (data.message === 'Login successful') {
+        // localStorage.setItem("authToken", data.token); // Save token for auth stat
+        // localStorage.setItem("status", data.status);
+
+        if (data.status == "Normal") {
+          window.location.href = '/write_email'
+        }
+        else{
+          window.location.href = '/home';
+        }
       }
     } catch (error) {
       console.error('Error during login:', error);

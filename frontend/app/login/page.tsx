@@ -1,12 +1,41 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import NavigationMenu from '../components/NavigationMenu';
 import LoginCard from '../components/LoginCard';
 import { Button } from '@/components/ui/button';
 
 function LoginPage() {
   const [view, setView] = useState('login'); // Manage view state here
+
+  // Check auth status on mount and redirect if logged in
+  useEffect(() => {
+    const checkAuthStatus = async () => {
+      try {
+        const response = await fetch('http://localhost:8000/api/check-auth', {
+          method: 'GET',
+          credentials: 'include', // Send authToken cookie
+        });
+        if (response.ok) {
+          const data = await response.json();
+          if (data.is_authenticated) {
+            console.log('User is authenticated:', data);
+            if (data.status === 'Normal') {
+              window.location.href = '/write_email';
+            } else {
+              window.location.href = '/home';
+            }
+          }
+        } else {
+          console.log('User not authenticated, staying on login page');
+        }
+      } catch (error) {
+        console.error('Error checking auth status:', error);
+      }
+    };
+
+    checkAuthStatus();
+  }, []); // Empty dependency array: runs once on mount
   
   return (
     <div className="flex flex-col justify-start w-screen h-screen bg-white">

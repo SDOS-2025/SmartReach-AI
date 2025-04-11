@@ -64,14 +64,6 @@ function HomePage() {
       });
   }, []);
 
-  // Check for authentication token
-  useEffect(() => {
-    const token = localStorage.getItem("authToken");
-    if (!token) {
-      router.push("/login");
-    }
-  }, [router]);
-
   // Handle filtering and searching on the campaigns list
   useEffect(() => {
     let results = campaigns;

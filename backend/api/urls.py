@@ -24,7 +24,7 @@ from .views import (
     get_email,
     get_email_original,
     get_email_normal,
-    logout
+    user_logout
 
 )
 
@@ -53,6 +53,6 @@ urlpatterns = [
     path('get-email/', get_email),
     path('get_email/', get_email_normal),
     path('get-email-original/', get_email_original),
-    path('logout_view/', logout)
+    path('logout/', user_logout)
 
 ]

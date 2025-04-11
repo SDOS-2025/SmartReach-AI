@@ -8,19 +8,52 @@ function NavigationMenu({ isLoggedIn: propIsLoggedIn }) {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
 
   useEffect(() => {
+    // Respect propIsLoggedIn if provided
     if (typeof propIsLoggedIn === 'boolean') {
       setIsLoggedIn(propIsLoggedIn);
-    } else {
-      const token = localStorage.getItem("authToken");
-      setIsLoggedIn(!!token);
+      return;
     }
-  }, [propIsLoggedIn]);
+
+    // Check for authToken cookie by calling check-auth endpoint
+    fetch('http://localhost:8000/api/check-auth', {
+      method: 'GET',
+      credentials: 'include', // Include authToken cookie
+    })
+      .then((res) => {
+        if (!res.ok) {
+          throw new Error('Not authenticated');
+        }
+        setIsLoggedIn(true); // Cookie is valid
+        console.log('got cookie');
+      })
+      .catch((error) => {
+        console.error('Authentication check failed:', error);
+        setIsLoggedIn(false);
+        router.push('/login');
+      });
+  }, [propIsLoggedIn, router]);
 
   const handleLogout = () => {
-    localStorage.removeItem("authToken");
-    setIsLoggedIn(false);
-    router.push('/login');
+    fetch('http://localhost:8000/api/logout/', {
+      method: 'GET',
+      credentials: 'include', 
+    })
+      .then((res) => {
+        if (res.ok) {
+          setIsLoggedIn(false);
+          router.push('/login');
+        } else {
+          console.error('Logout failed');
+        }
+      })
+      .catch((error) => {
+        console.error('Logout error:', error);
+        // Proceed with redirect even if API fails
+        setIsLoggedIn(false);
+        router.push('/login');
+      });
   };
+  
 
   return (
     <nav className="flex bg-[#0F142E] items-center justify-between px-4 md:px-6 py-4 h-full w-full">
