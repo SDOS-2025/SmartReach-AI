@@ -29,6 +29,7 @@ from .models import EmailLog
 from django.core.cache import cache
 from rest_framework.authtoken.models import Token
 import logging
+from LLM_template_generator import TemplateGenerator
 logger = logging.getLogger(__name__)
 
 
@@ -582,7 +583,8 @@ def generate_template(request):
         "use_rag": False,
         "vector_db_path": None 
     }
-    template = generate_content(response_data)
+    template_generator = TemplateGenerator(**response_data)
+    template = template_generator.generate()
     request.session['generated_template'] = template
     org_id = cache.get('org_id')
     user_id = cache.get('user_id')

@@ -11,4 +11,12 @@ numpy
 scikit-learn
 openai
 requests
-openai
+google-generativeai
+groq
+langchain 
+tiktoken 
+faiss-cpu 
+chromadb 
+unstructured
+langchain-core 
+langchain-community
