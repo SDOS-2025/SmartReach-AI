@@ -13,13 +13,7 @@ import { toast } from 'sonner';
 
 
 function EmailPage() {
-  const router = useRouter();
-  useEffect(() => {
-    const token = localStorage.getItem("authToken");
-    if (!token) {
-      router.push("/login");
-    }
-  }, []);
+
   
   
   const [currentStep, setCurrentStep] = useState(1);
