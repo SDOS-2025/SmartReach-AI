@@ -27,9 +27,8 @@ function NavigationMenu({ isLoggedIn: propIsLoggedIn }) {
         console.log('got cookie');
       })
       .catch((error) => {
-        console.error('Authentication check failed:', error);
+        console.log('Authentication check failed:', error);
         setIsLoggedIn(false);
-        router.push('/login');
       });
   }, [propIsLoggedIn, router]);
 
