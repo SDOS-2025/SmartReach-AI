@@ -94,7 +94,7 @@ def google_login(request):
 def auth_complete(request):
     """Handle the OAuth callback and redirect with token"""
     if request.user.is_authenticated:
-        cache.set('user_id', 'Google', timeout=3600)
+        cache.set('user_id', request.user.user_id, timeout=3600)
         token, _ = Token.objects.get_or_create(user=request.user)
 
         print(token)
