@@ -1112,3 +1112,21 @@ def upload_company_users_csv(request):
             continue
 
     return Response({"users": created_users}, status=status.HTTP_201_CREATED)
+@csrf_exempt
+@api_view(['POST'])
+def delete_users(request):
+    user_ids = request.data.get('user_ids', [])
+    if not isinstance(user_ids, list):
+        return Response({"error": "user_ids must be a list"}, status=status.HTTP_400_BAD_REQUEST)
+    
+    deleted_count, _ = CompanyUser.objects.filter(id__in=user_ids).delete()
+    return Response({"status": "success", "deleted": deleted_count}, status=status.HTTP_200_OK)
+
+@api_view(['GET'])
+def get_username(request):
+    user_id = cache.get('user_id')
+    user = User.objects.filter(user_id=user_id)
+    print(user.values('username'))
+    print(user.values('email'))
+    
+    return JsonResponse(user.values('username','email')[0])

@@ -5,13 +5,15 @@ import NavigationMenu from "../components/NavigationMenu";
 import { useRouter } from "next/navigation";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from "recharts";
 import { UserPlus, Upload, Search, X } from "lucide-react";
-import Footer from "../components/Footer";
 
 function CustomersPage() {
   const [users, setUsers] = useState([]);
   const [filteredUsers, setFilteredUsers] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [chartData, setChartData] = useState([]);
+  const [selectionMode, setSelectionMode] = useState(false);
+const [selectedUsers, setSelectedUsers] = useState(new Set());
+const [selectAll, setSelectAll] = useState(false);
   const [selectedMetrics, setSelectedMetrics] = useState({
     clickRate: true,
     engagementDelay: true,
@@ -111,6 +113,12 @@ function CustomersPage() {
       setFilteredUsers([...users, data.user]);
       setShowAddModal(false);
       resetForm();
+      setSelectionMode(false);
+      setSelectedUsers(new Set());
+      setSelectAll(false);
+
+
+
     } catch (err) {
       console.error("Error adding user:", err);
       alert("Failed to add user");
@@ -161,7 +169,43 @@ function CustomersPage() {
       timezone: "",
     });
   };
-
+  const toggleUserSelection = userId => {
+    const updated = new Set(selectedUsers);
+    updated.has(userId) ? updated.delete(userId) : updated.add(userId);
+    setSelectedUsers(updated);
+  };
+  
+  const toggleSelectAll = () => {
+    if (selectAll) {
+      setSelectedUsers(new Set());
+    } else {
+      setSelectedUsers(new Set(filteredUsers.map(user => user.id)));
+    }
+    setSelectAll(!selectAll);
+  };
+  
+  const handleDeleteSelected = async () => {
+    if (selectedUsers.size === 0) return;
+    try {
+      const token = localStorage.getItem("authToken");
+      await fetch("http://localhost:8000/api/delete-users/", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Token ${token}`
+        },
+        body: JSON.stringify({ user_ids: Array.from(selectedUsers) })
+      });
+      setUsers(users.filter(user => !selectedUsers.has(user.id)));
+      setFilteredUsers(filteredUsers.filter(user => !selectedUsers.has(user.id)));
+      setSelectedUsers(new Set());
+      setSelectAll(false);
+      setSelectionMode(false);
+    } catch (err) {
+      console.error("Error deleting users:", err);
+    }
+  };
+  
   // Toggle metrics for chart
   const toggleMetric = (metric) => {
     setSelectedMetrics({ ...selectedMetrics, [metric]: !selectedMetrics[metric] });
@@ -197,21 +241,62 @@ function CustomersPage() {
           <div className="flex justify-between items-center mb-6">
             <h1 className="text-2xl font-bold text-white">Users</h1>
             <div className="flex space-x-4">
-              <button
-                onClick={() => setShowAddModal(true)}
-                className="bg-blue-600 hover:bg-blue-700 text-white py-2 px-4 rounded-lg flex items-center transition-all"
-              >
-                <UserPlus size={18} className="mr-2" />
-                Add User
-              </button>
-              <button
-                onClick={() => setShowCsvModal(true)}
-                className="bg-green-600 hover:bg-green-700 text-white py-2 px-4 rounded-lg flex items-center transition-all"
-              >
-                <Upload size={18} className="mr-2" />
-                Upload CSV
-              </button>
+            {!selectionMode ? (
+    <>
+      <button
+        onClick={() => setShowAddModal(true)}
+        className="bg-blue-600 hover:bg-blue-700 text-white py-2 px-4 rounded-lg flex items-center transition-all"
+      >
+        <UserPlus size={18} className="mr-2" />
+        Add User
+      </button>
+      <button
+        onClick={() => setShowCsvModal(true)}
+        className="bg-green-600 hover:bg-green-700 text-white py-2 px-4 rounded-lg flex items-center transition-all"
+      >
+        <Upload size={18} className="mr-2" />
+        Upload CSV
+      </button>
+      <button
+        onClick={() => {
+          setSelectionMode(true);
+          setSelectedUsers(new Set());
+          setSelectAll(false);
+        }}
+        className="bg-yellow-500 hover:bg-yellow-600 text-white py-2 px-4 rounded-lg transition-all"
+      >
+        Select
+      </button>
+    </>
+  ) : (
+    <>
+      <button
+        onClick={toggleSelectAll}
+        className="bg-blue-600 hover:bg-blue-700 text-white py-2 px-4 rounded-lg"
+      >
+        {selectAll ? "Unselect All" : "Select All"}
+      </button>
+      <button
+        onClick={handleDeleteSelected}
+        disabled={selectedUsers.size === 0}
+        className="bg-red-600 hover:bg-red-700 text-white py-2 px-4 rounded-lg disabled:opacity-50"
+      >
+        Delete Selected
+      </button>
+      <button
+        onClick={() => {
+          setSelectionMode(false);
+          setSelectedUsers(new Set());
+          setSelectAll(false);
+        }}
+        className="bg-gray-600 hover:bg-gray-700 text-white py-2 px-4 rounded-lg"
+      >
+        Deselect
+      </button>
+    </>
+  )}
             </div>
+            
           </div>
 
           {/* Search Section */}
@@ -322,21 +407,34 @@ function CustomersPage() {
             ) : (
               <div className="overflow-x-auto rounded-lg shadow">
                 <table className="min-w-full divide-y divide-gray-700">
-                  <thead className="bg-[#252B61]">
-                    <tr>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">Name</th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">Email</th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">Age</th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">Gender</th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">Location</th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">Timezone</th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">Date Joined</th>
-                    </tr>
-                  </thead>
+                  <thead className="bg-[#1A1F4A]">
+                  <tr>
+                    {selectionMode && <th className="px-3 py-2 text-gray-300">Select</th>}
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">Name</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">Email</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">Age</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">Gender</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">Location</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">Timezone</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">Date Joined</th>
+                  </tr>
+                </thead>
+
                   <tbody className="bg-[#1A1F4A] divide-y divide-gray-700">
+                    
                     {filteredUsers.length > 0 ? (
                       filteredUsers.map((user) => (
                         <tr key={user.id} className="hover:bg-[#252B61]">
+
+                        {selectionMode && (
+                                <td className="px-3 py-2">
+                                  <input
+                                    type="checkbox"
+                                    checked={selectedUsers.has(user.id)}
+                                    onChange={() => toggleUserSelection(user.id)}
+                                  />
+                                </td>
+                              )}
                           <td className="px-6 py-4 whitespace-nowrap">
                             <div className="font-medium text-white">{`${user.first_name} ${user.last_name}`}</div>
                           </td>
@@ -364,7 +462,7 @@ function CustomersPage() {
           </div>
         </div>
       </div>
-
+      
       {/* Add User Modal */}
       {showAddModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
@@ -509,15 +607,16 @@ function CustomersPage() {
               >
                 {isLoading ? "Uploading..." : "Upload CSV"}
               </button>
+
+              
             </div>
+            
           </div>
         </div>
       )}
-
-      <Footer />
-
-
+     
     </div>
+    
   );
 }
 

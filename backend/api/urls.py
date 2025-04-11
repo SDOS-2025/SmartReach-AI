@@ -27,7 +27,9 @@ from .views import (
     user_logout,
     get_company_users,
     add_user,
-    upload_company_users_csv
+    upload_company_users_csv,
+    delete_users,
+    get_username
 
 )
 
@@ -59,6 +61,8 @@ urlpatterns = [
     path('logout/', user_logout),
     path('get-company-users/',get_company_users),
     path('add-user/',add_user),
-    path('upload-company-users-csv/',upload_company_users_csv)
+    path('upload-company-users-csv/',upload_company_users_csv),
+    path('delete-users/',delete_users),
+    path('get-username/',get_username)
 
 ]

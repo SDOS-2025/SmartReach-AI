@@ -3,27 +3,36 @@ import React, { useEffect, useState, useRef } from 'react';
 import Link from 'next/link';
 import { useRouter, usePathname } from 'next/navigation';
 
-function NavigationMenu({ isLoggedIn: propIsLoggedIn, userName }) {
+function NavigationMenu({ isLoggedIn: propIsLoggedIn }) {
   const router = useRouter();
   const pathname = usePathname();
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [dropdownOpen, setDropdownOpen] = useState(false);
-  const [user, setUser] = useState(userName || 'User');
+  const [username, setUsername] = useState('Username');
+  const [email, setEmail] = useState('username@gmail.com');
+
   const dropdownRef = useRef(null);
 
-  const fetchUsername = async () => {
-    try {
-      const res = await fetch('http://localhost:8000/api/get-username', {
-        method: 'GET',
-        credentials: 'include',
-      });
-      if (!res.ok) return;
-      const data = await res.json();
-      if (data.name) setUser(data.name);
-    } catch (error) {
-      console.log('Username fetch failed:', error);
-    }
-  };
+  useEffect(() => {
+    const fetchUsername = async () => {
+      try {
+        const res = await fetch('http://localhost:8000/api/get-username', {
+          method: 'GET',
+          credentials: 'include',
+        });
+        if (!res.ok) return;
+        const data = await res.json();
+        if (data.username) setUsername(data.username);
+        if (data.email) setEmail(data.email);
+      } catch (error) {
+        console.log('Username fetch failed:', error);
+      }
+    };
+
+    fetchUsername();
+  }, []);
+
+  
 
   useEffect(() => {
     if (typeof propIsLoggedIn === 'boolean') {
@@ -50,7 +59,7 @@ function NavigationMenu({ isLoggedIn: propIsLoggedIn, userName }) {
         console.log('Authentication check failed:', error);
         setIsLoggedIn(false);
       });
-  }, [propIsLoggedIn, userName]);
+  }, [propIsLoggedIn]);
 
   useEffect(() => {
     function handleClickOutside(event) {
@@ -112,9 +121,9 @@ function NavigationMenu({ isLoggedIn: propIsLoggedIn, userName }) {
               className="flex items-center gap-2 px-3 py-2 mr-8 text-white transition-all duration-200 group"
             >
               <div className="flex items-center justify-center bg-blue-700 rounded-full w-8 h-8 border-2 border-blue-800">
-                <span className="text-sm font-medium">{user.charAt(0).toUpperCase()}</span>
+                <span className="text-sm font-medium">{username.charAt(0).toUpperCase()}</span>
               </div>
-              <span className="font-medium">Hey, {user}</span>
+              <span className="font-medium">Hey, {username}</span>
               <svg 
                 className={`w-4 h-4 text-blue-100 transition-transform duration-200 ease-in-out ${dropdownOpen ? 'rotate-180' : ''}`}
                 xmlns="http://www.w3.org/2000/svg" 
@@ -130,7 +139,7 @@ function NavigationMenu({ isLoggedIn: propIsLoggedIn, userName }) {
                 <div className="pt-2">
                   <div className="px-4 py-3 border-b border-gray-100">
                     <p className="text-sm text-gray-500">Signed in as</p>
-                    <p className="text-sm font-medium text-gray-800 truncate">{user}</p>
+                    <p className="text-sm font-medium text-gray-800 truncate">{email}</p>
                   </div>
                   
                   <div className="py-1">
