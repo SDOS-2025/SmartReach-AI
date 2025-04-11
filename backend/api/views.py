@@ -58,6 +58,7 @@ def login_view(request):
 
     return Response({
         'message': 'Login successful',
+        'status': 'Normal' if org is None else 'Business',
         'token': token.key
     })
 
@@ -71,10 +72,16 @@ def auth_complete(request):
     """Handle the OAuth callback and redirect with token"""
     if request.user.is_authenticated:
         cache.set('user_id', 'Google', timeout=3600)
-        return redirect('http://localhost:3000/write_email')
+        token, _ = Token.objects.get_or_create(user=request.user)
+
+        return Response({
+            'message': 'Login successful',
+            'status': 'Normal',
+            'token': token.key
+        })
 
     else:
-        return redirect('http://localhost:3000/login')
+        return Response({'error': 'User not authenticated'}, status=401)
 
 @api_view(['GET'])
 def check_auth(request):
