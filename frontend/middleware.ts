@@ -68,5 +68,5 @@ export async function middleware(request) {
 }
 
 export const config = {
-  matcher: ['/write-email', '/home', '/dashboard/:id*', '/login'], // Apply middleware only to /write-email
+  matcher: ['/write-email', '/home', '/dashboard/:id*', '/login', '/admin'], // Apply middleware only to /write-email
 };

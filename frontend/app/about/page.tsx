@@ -2,6 +2,7 @@
 
 import React from 'react';
 import NavigationMenu from '../components/NavigationMenu';
+import Footer from '../components/Footer';
 
 function AboutUsPage() {
   const teamMembers = [
@@ -135,12 +136,10 @@ function AboutUsPage() {
       </div>
 
       {/* Footer */}
-      <div className="mt-auto p-6 bg-[#0A0F21] text-center">
-        <p className="text-gray-400">© 2025 Campaign Analytics. All rights reserved.</p>
-      </div>
+      <Footer />
 
       {/* Custom Tailwind Animations */}
-      <style jsx global>{`
+      {/* <style jsx global>{`
         @keyframes fadeInDown {
           from {
             opacity: 0;
@@ -167,7 +166,7 @@ function AboutUsPage() {
         .animate-fade-in-up {
           animation: fadeInUp 0.8s ease-out forwards;
         }
-      `}</style>
+      `}</style> */}
     </div>
   );
 }

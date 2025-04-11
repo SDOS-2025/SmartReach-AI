@@ -4,17 +4,18 @@ import React, { useState, useEffect } from 'react';
 import NavigationMenu from '../components/NavigationMenu';
 import LoginCard from '../components/LoginCard';
 import { Button } from '@/components/ui/button';
+import Footer from '../components/Footer';
 
 function LoginPage() {
   const [view, setView] = useState('login'); // Manage view state here
   
   return (
-    <div className="flex flex-col justify-start w-screen h-screen bg-white">
-      <div className="h-20 flex-none">
+    <div className="flex flex-col justify-start w-screen bg-white">
+      <div className="h-[10vh] flex-none">
         <NavigationMenu isLoggedIn={false} />
       </div>
       
-      <div className="flex flex-auto flex-col md:flex-row h-[calc(100vh-5rem)]">
+      <div className="h-[90vh] flex flex-auto flex-col md:flex-row ">
         {/* Login Form Section */}
         <div className="w-full md:w-3/5 flex justify-center items-start relative overflow-y-auto">
           {/* Decorative elements */}
@@ -70,6 +71,8 @@ function LoginPage() {
           </div>
         </div>
       </div>
+
+      <Footer />
     </div>
   );
 }

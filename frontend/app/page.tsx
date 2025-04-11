@@ -4,6 +4,7 @@ import { CarouselShadcn } from './components/CarouselShad';
 import Image from 'next/image';
 import { ArrowRight, BarChart2, Globe, MessageSquare, Users } from 'lucide-react';
 import Link from 'next/link';
+import Footer from './components/Footer';
 
 function HomePage() {
   // Feature card component for the features section
@@ -134,17 +135,7 @@ function HomePage() {
       </div>
 
       {/* Footer */}
-      <footer className="w-full py-6 px-6 md:px-10 border-t border-gray-800 mt-auto">
-        <div className="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center">
-          <p className="text-gray-400 mb-4 md:mb-0">© 2025 Campaign Analytics Platform. All rights reserved.</p>
-          <div className="flex gap-6">
-            <Link href="/about" className="text-gray-400 hover:text-blue-400 transition-colors">About</Link>
-            <Link href="/features" className="text-gray-400 hover:text-blue-400 transition-colors">Features</Link>
-            <Link href="/pricing" className="text-gray-400 hover:text-blue-400 transition-colors">Pricing</Link>
-            <Link href="/contact" className="text-gray-400 hover:text-blue-400 transition-colors">Contact</Link>
-          </div>
-        </div>
-      </footer>
+      <Footer />
     </div>
   );
 }

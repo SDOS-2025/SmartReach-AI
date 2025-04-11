@@ -3,6 +3,7 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import NavigationMenu from '../../components/NavigationMenu';
+import Footer from '@/app/components/Footer';
 
 function CampaignDashboardPage() {
   const params = useParams();
@@ -135,6 +136,7 @@ function CampaignDashboardPage() {
           )}
         </div>
       </div>
+      <Footer />
     </div>
   );
 }

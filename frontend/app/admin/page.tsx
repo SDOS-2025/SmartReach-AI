@@ -5,6 +5,7 @@ import NavigationMenu from "../components/NavigationMenu";
 import { useRouter } from "next/navigation";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from "recharts";
 import { UserPlus, Upload, Search, X } from "lucide-react";
+import Footer from "../components/Footer";
 
 function CustomersPage() {
   const [users, setUsers] = useState([]);
@@ -512,6 +513,10 @@ function CustomersPage() {
           </div>
         </div>
       )}
+
+      <Footer />
+
+
     </div>
   );
 }

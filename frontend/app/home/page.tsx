@@ -4,6 +4,7 @@ import React, { useState, useEffect } from 'react';
 import NavigationMenu from '../components/NavigationMenu';
 import { useRouter } from 'next/navigation';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from 'recharts';
+import Footer from '../components/Footer';
 
 function HomePage() {
   const [campaigns, setCampaigns] = useState([]);
@@ -301,6 +302,8 @@ function HomePage() {
           </div>
         </div>
       </div>
+
+      <Footer />
     </div>
   );
 }

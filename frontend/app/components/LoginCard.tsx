@@ -187,9 +187,12 @@ const LoginCard = ({ view, setView }: LoginCardProps) => {
         />
         {showLoginErrors && !password && <p className="text-red-500 text-sm mt-1">This field is required</p>}
       </Label>
-      <a href="#" className="text-sm text-blue-500 hover:underline mb-3">
-        Forgot Password?
-      </a>
+      <div className="text-sm text-blue-500 hover:underline py-5">
+        <a href="#" className="hover:underline" >
+          Forgot Password?
+        </a>
+
+      </div>
       <Button
         type="submit"
         className="w-full bg-blue-500 h-14 text-xl text-white py-2 mt-1 rounded-full hover:bg-blue-600 transition-all duration-300 ease-in-out hover:scale-95 hover:shadow-md hover:shadow-blue-500/50 animate-shrink-shadow"
