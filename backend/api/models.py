@@ -119,11 +119,7 @@ class CampaignStatistics(models.Model):
 
     def __str__(self):
         return self.campaign_id
-    
-
-
-
-
+        
 class EmailLog(models.Model):
     organization_id = models.IntegerField()
     user_email = models.EmailField()

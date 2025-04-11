@@ -70,26 +70,33 @@ def google_login(request):
 def auth_complete(request):
     """Handle the OAuth callback and redirect with token"""
     if request.user.is_authenticated:
-        token, _ = Token.objects.get_or_create(user=request.user)
+        cache.set('user_id', 'Google', timeout=3600)
+        return redirect('http://localhost:3000/write_email')
 
-        redirect_url = f"http://localhost:3000/write-email/?token={token.key}"
-        return HttpResponseRedirect(redirect_url)
-    
-    return HttpResponseRedirect("http://localhost:3000/error")
+    else:
+        return redirect('http://localhost:3000/login')
 
 @api_view(['GET'])
 def check_auth(request):
     """Check if user is authenticated"""
     if request.user.is_authenticated:
+        result = ''
+        user_id = cache.get('user_id')
+        if user_id == 'Google':
+            return Response({'is_authenticated': True, 'status': 'Normal'})
+        if user_id is None:
+            return Response({'is_authenticated': False}, status=401)
+    
+        val = Organization.objects.filter(org_id=user_id).first()
+        if val is None:
+            result = 'Normal'
+        else:
+            result = 'Business'
         return Response({
             'is_authenticated': True,
-            'user': {
-                'id': request.user.id,
-                'username': request.user.username,
-                'email': request.user.email
-            }
+            'status': result
         })
-    return Response({'is_authenticated': False})
+    return Response({'is_authenticated': False}, status=401)
 
 def convert_ist_to_utc(ist_date, ist_time):
     """Convert IST date and time to UTC."""
@@ -873,3 +880,71 @@ def get_email(request):
     html_template = {'Subject': template['Subject'], 'Body': html_body}
 
     return JsonResponse(html_template)
+
+
+def get_email_normal(request):
+    template = cache.get('Template')
+    subject = template['Subject']
+    message = f"{template['Body']}\n\n"
+
+    company_link = cache.get('company_link')
+    if company_link:
+        tracking_url = f"{company_link}"
+    else:
+        tracking_url = "https://smartreachai.social"
+
+    html_body = f"""
+    <!DOCTYPE html>
+        <html lang="en">
+        <body style="margin: 0; padding: 0; font-family: Arial, Helvetica, sans-serif; background-color: #ffffff; line-height: 1.6;">
+            <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="background-color: #ffffff;">
+                <tr>
+                    <td align="center">
+                        <table role="presentation" width="600" cellspacing="0" cellpadding="0" border="0" style="max-width: 600px; margin: 0 auto; padding: 20px 0;">
+                            <tr>
+                                <td style="padding: 20px 0; text-align: center;">
+                                    <h1 style="margin: 0; font-size: 28px; color: #222222; font-weight: bold;">{subject}</h1>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td style="padding: 0 20px;">
+                                    <hr style="border: none; border-top: 1px solid #e0e0e0; margin: 0;">
+                                </td>
+                            </tr>
+                            <tr>
+                                <td style="padding: 20px; color: #333333; font-size: 16px;">
+                                    <p style="margin: 0 0 20px;">{message}</p>
+                                    <table role="presentation" cellspacing="0" cellpadding="0" border="0" style="margin: 20px auto;">
+                                        <tr>
+                                            <td style="text-align: center;">
+                                                <a href="{tracking_url}" target="_blank" 
+                                                   style="display: inline-block; padding: 14px 30px; background-color: #ff5733; color: #ffffff; text-decoration: none; border-radius: 6px; font-size: 16px; font-weight: bold;">
+                                                    Shop Now
+                                                </a>
+                                            </td>
+                                        </tr>
+                                    </table>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td style="padding: 0 20px;">
+                                    <hr style="border: none; border-top: 1px solid #e0e0e0; margin: 0;">
+                                </td>
+                            </tr>
+                        </table>
+                    </td>
+                </tr>
+            </table>
+        </body>
+        </html>
+    """
+    html_template = {'Subject': template['Subject'], 'Body': html_body}
+
+    return JsonResponse(html_template)
+
+def logout(request):
+    cache.delete('user_id')
+    cache.delete('org_id')
+    cache.delete('campaign_id')
+    cache.delete('Template')
+    return JsonResponse({'message': 'Logged out successfully'})

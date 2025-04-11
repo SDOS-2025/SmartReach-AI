@@ -23,6 +23,8 @@ from .views import (
     update_email,
     get_email,
     get_email_original,
+    get_email_normal,
+    logout
 
 )
 
@@ -49,6 +51,8 @@ urlpatterns = [
     path('optimal-start-time',autofill_time),
     path('update-email', update_email),
     path('get-email/', get_email),
-    path('get-email-original/', get_email_original)
+    path('get_email/', get_email_normal),
+    path('get-email-original/', get_email_original),
+    path('logout_view/', logout)
 
 ]

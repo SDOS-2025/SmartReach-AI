@@ -242,7 +242,7 @@ SOCIAL_AUTH_GOOGLE_OAUTH2_REDIRECT_URI = 'http://localhost:8000/social-auth/comp
 # URLs
 LOGIN_URL = '/login'
 LOGIN_REDIRECT_URL = 'http://localhost:3000/write-email/'
-SOCIAL_AUTH_LOGIN_REDIRECT_URL = 'http://localhost:3000/write-email/'
+SOCIAL_AUTH_LOGIN_REDIRECT_URL = 'http://localhost:8000/api/auth-complete/'
 SOCIAL_AUTH_LOGIN_ERROR_URL = 'http://localhost:3000/error'
 
 # CORS Settings
