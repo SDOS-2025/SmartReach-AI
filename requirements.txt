@@ -20,3 +20,5 @@ chromadb
 unstructured
 langchain-core 
 langchain-community
+transformers
+torch
