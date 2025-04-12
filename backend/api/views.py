@@ -46,7 +46,7 @@ def login_view(request):
     user = authenticate(request, username=username, password=password)
 
     if user is None:
-        return Response({'error': 'Wrong username or password!'}, status=400)
+        return Response({'error': 'Wrong email or password!'}, status=400)
 
 
     # Session + Cache setup (optional)

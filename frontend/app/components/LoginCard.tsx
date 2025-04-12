@@ -1,10 +1,11 @@
 'use client';
 
-import React, { useState , useRef ,useEffect } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Separator } from '@/components/ui/separator';
+import { AlertCircle } from 'lucide-react';
 
 interface LoginCardProps {
   view: string;
@@ -23,6 +24,7 @@ const LoginCard = ({ view, setView }: LoginCardProps) => {
   const [showLoginErrors, setShowLoginErrors] = useState(false);
   const [showSignupIndErrors, setShowSignupIndErrors] = useState(false);
   const [showSignupBusErrors, setShowSignupBusErrors] = useState(false);
+  const [loginErrorMessage, setLoginErrorMessage] = useState('');
   
   const passwordInputRef = useRef<HTMLInputElement>(null);
 
@@ -43,8 +45,10 @@ const LoginCard = ({ view, setView }: LoginCardProps) => {
 
   const handleLogin = async () => {
     setShowLoginErrors(true);
+    setLoginErrorMessage('');
+
     if (!isLoginValid()) {
-      console.error('Please fill all required fields: Username, Password');
+      console.error('Please fill all required fields: Email, Password');
       return;
     }
 
@@ -55,27 +59,30 @@ const LoginCard = ({ view, setView }: LoginCardProps) => {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(requestBody),
       });
+
+      const data = await response.json();
+
       if (!response.ok) {
         console.log("Status Code:", response.status);
-        const errorData = await response.json();
-        console.error('Login error:', errorData);
+        console.error('Login error:', data);
+        if (data?.error === "Wrong email or password!") {
+          setLoginErrorMessage("Wrong email or password!");
+        } else {
+          setLoginErrorMessage("An unexpected error occurred.");
+        }
         return;
       }
-      const data = await response.json();
-      console.log('Login response:', data);
-      if (data.message === 'Login successful') {
-        // localStorage.setItem("authToken", data.token); // Save token for auth stat
-        // localStorage.setItem("status", data.status);
 
-        if (data.status == "Normal") {
-          window.location.href = '/write_email'
-        }
-        else{
+      if (data.message === 'Login successful') {
+        if (data.status === "Normal") {
+          window.location.href = '/write_email';
+        } else {
           window.location.href = '/home';
         }
       }
     } catch (error) {
       console.error('Error during login:', error);
+      setLoginErrorMessage("Server error. Please try again later.");
     }
   };
 
@@ -157,6 +164,15 @@ const LoginCard = ({ view, setView }: LoginCardProps) => {
     >
       <h1 className="text-3xl font-bold text-center mb-4">Welcome to SmartReachAI</h1>
       <h2 className="text-3xl mb-3 flex justify-center">Login</h2>
+      
+      {/* Error message display */}
+      {loginErrorMessage && (
+        <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded mb-4 flex items-center">
+          <AlertCircle className="h-5 w-5 mr-2" />
+          <span>{loginErrorMessage}</span>
+        </div>
+      )}
+      
       <Label className="block">
         <Input
           className="h-14"
@@ -191,7 +207,6 @@ const LoginCard = ({ view, setView }: LoginCardProps) => {
         <a href="#" className="hover:underline" >
           Forgot Password?
         </a>
-
       </div>
       <Button
         type="submit"
