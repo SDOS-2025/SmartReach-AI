@@ -204,7 +204,14 @@ const LoginCard = ({ view, setView }: LoginCardProps) => {
         {showLoginErrors && !password && <p className="text-red-500 text-sm mt-1">This field is required</p>}
       </Label>
       <div className="text-sm text-blue-500 hover:underline py-5">
-        <a href="#" className="hover:underline" >
+        <a 
+          href="#" 
+          className="hover:underline" 
+          onClick={(e) => {
+            e.preventDefault();
+            setView('forgot-password');
+          }}
+        >
           Forgot Password?
         </a>
       </div>

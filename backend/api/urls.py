@@ -29,7 +29,10 @@ from .views import (
     add_user,
     upload_company_users_csv,
     delete_users,
-    get_username
+    get_username,
+    forgot_password,
+    verify_otp,
+    reset_password
 
 )
 
@@ -63,6 +66,9 @@ urlpatterns = [
     path('add-user/',add_user),
     path('upload-company-users-csv/',upload_company_users_csv),
     path('delete-users/',delete_users),
-    path('get-username/',get_username)
+    path('get-username/',get_username),
+    path('forgot-password', forgot_password),
+    path('verify-otp', verify_otp),
+    path('reset-password', reset_password),
 
 ]

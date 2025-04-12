@@ -29,6 +29,7 @@ from django.core.cache import cache
 from rest_framework.authtoken.models import Token
 import logging
 from .LLM_template_generator import TemplateGenerator
+import random
 logger = logging.getLogger(__name__)
 
 
@@ -1130,3 +1131,69 @@ def get_username(request):
         return JsonResponse({'error': 'User not found'}, status=404)
     
     return JsonResponse(user.values('username','email')[0])
+
+@api_view(['POST'])
+def forgot_password(request):
+    email = request.data.get('email')
+    if not email:
+        return Response({"error": "Email is required."}, status=status.HTTP_400_BAD_REQUEST)
+
+    try:
+        user = User.objects.get(email=email)
+    except User.DoesNotExist:
+        return Response({"error": "User with this email does not exist."}, status=status.HTTP_404_NOT_FOUND)
+
+    otp = str(random.randint(100000, 999999))
+
+    cache.set(f"otp_{email}", otp, timeout=300)
+
+    subject = 'Your SmartReachAI Password Reset OTP'
+    message = f"""
+    Hello {user.username},
+
+    We received a request to reset your SmartReachAI password.
+
+    Your OTP is: {otp}
+
+    This OTP will expire in 10 minutes. If you didn't request this, please ignore this email.
+
+    Thank you,
+    SmartReachAI Team
+    """
+    send_mail(subject, message, 'noelab04@gmail.com', [email])
+
+    return Response({'message': 'OTP sent to your email.'})
+
+@api_view(['POST'])
+def verify_otp(request):
+    email = request.data.get('email')
+    otp = request.data.get('otp')
+
+    if not email or not otp:
+        return Response({"error": "Email and OTP are required."}, status=status.HTTP_400_BAD_REQUEST)
+
+    cached_otp = cache.get(f"otp_{email}")
+    if not cached_otp:
+        return Response({"error": "OTP expired or invalid."}, status=status.HTTP_400_BAD_REQUEST)
+
+    if cached_otp != otp:
+        return Response({"error": "Invalid OTP."}, status=status.HTTP_400_BAD_REQUEST)
+    
+    return Response({"message": "OTP verified successfully."})
+
+@api_view(['POST'])
+def reset_password(request):
+    email = request.data.get('email')
+    new_password = request.data.get('new_password')
+
+    if not email or not new_password:
+        return Response({"error": "Email and new password are required."}, status=status.HTTP_400_BAD_REQUEST)
+
+    try:
+        user = User.objects.get(email=email)
+        user.set_password(new_password)
+        user.save()
+        cache.delete(f"otp_{email}")
+        return Response({"message": "Password reset successfully."})
+    except User.DoesNotExist:
+        return Response({"error": "User with this email does not exist."}, status=status.HTTP_404_NOT_FOUND)
