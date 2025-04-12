@@ -1,4 +1,4 @@
-"use client"; // Mark as Client Component
+"use client"; 
 
 import React from 'react';
 import NavigationMenu from '../components/NavigationMenu';
@@ -8,28 +8,28 @@ function AboutUsPage() {
   const teamMembers = [
     {
       name: "Rahul Omalur",
-      role: "Data Scientist",
+      role: "The Scientist",
       email: "rahul22392@iiitd.ac.in",
       quote: "Life moves pretty fast, If you don't stop and look around once in a while you will miss it.",
       image: "/images/rahul.jpeg"
     },
     {
       name: "Tharun Harish",
-      role: "Frontend Engineer & DevOps",
+      role: "The Creator",
       email: "tharun22541@iiitd.ac.in",
       quote: "Do we exist to question reality, or does reality exist to question us?",
       image: "/images/tharun.jpeg"
     },
     {
       name: "Mehul Agarwal",
-      role: "ML Engineer",
+      role: "The Alchemist ",
       email: "mehul22294@iiitd.ac.in",
       quote: "The best code is not the one that works, but the one that teaches you something new.",
       image: "/images/mehul.jpg"
     },
     {
       name: "Noel Abraham Tiju",
-      role: "Backend Engineer",
+      role: "The Architect",
       email: "noel22338@iiitd.ac.in",
       quote: "Love is patient, Love is kind",
       image: "/images/noel.jpeg"
