@@ -17,7 +17,7 @@ function LoginPage() {
       </div>
       <div className="h-[90vh] flex flex-auto flex-col md:flex-row ">
         {/* Login Form Section */}
-        <div className="w-full md:w-3/5 flex justify-center items-start relative overflow-y-auto">
+        <div className="w-full md:w-3/5 flex justify-center items-center relative overflow-y-auto">
           {/* Decorative elements */}
           <div className="absolute top-0 left-0 w-32 h-32 bg-blue-500/10 rounded-full -translate-x-1/2 -translate-y-1/2"></div>
           <div className="absolute bottom-0 right-0 w-64 h-64 bg-blue-500/5 rounded-full translate-x-1/3 translate-y-1/3"></div>
