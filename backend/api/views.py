@@ -1,43 +1,39 @@
 import json
-from datetime import datetime,timedelta
-import pytz
+import csv
+import random
+import logging
+from datetime import datetime, timedelta
+from io import TextIOWrapper
+
 import pandas as pd
+import pytz
+from django.core.cache import cache
+from django.core.mail import send_mail, get_connection
 from django.core.validators import validate_email
 from django.core.exceptions import ValidationError
+from django.http import JsonResponse, HttpResponse, HttpResponseRedirect
 from django.shortcuts import render, redirect
-from django.core.mail import send_mail, get_connection
-from django.http import JsonResponse
-from django.http import HttpResponse
+from django.utils.timezone import now, make_aware
 from django.views.decorators.csrf import csrf_exempt
 from django.contrib import messages
-from django.utils.timezone import make_aware
+from django.contrib.auth import login, authenticate, logout, get_user_model
+from django.contrib.auth.decorators import login_required
+from django.db import IntegrityError
+
 from rest_framework.response import Response
 from rest_framework import status
 from rest_framework.decorators import api_view
-from django.contrib.auth.decorators import login_required
+from rest_framework.authtoken.models import Token
+
 from social_django.utils import load_strategy, load_backend
 from social_core.backends.oauth import BaseOAuth2
 from social_core.exceptions import MissingBackend
-from django.contrib.auth import login, authenticate, logout, get_user_model
+
 from api.models import User, Organization, CompanyUser, CampaignDetails, CompanyUserEngagement, CampaignStatistics
+from .models import EmailLog
 from .sto_model import get_optimal_send_time
 from .tasks import send_scheduled_email
-from django.http import JsonResponse, HttpResponseRedirect
-from django.utils.timezone import now
-from .models import EmailLog
-from django.core.cache import cache
-from rest_framework.authtoken.models import Token
-import logging
 from .LLM_template_generator import TemplateGenerator
-import random
-from django.http import JsonResponse, HttpResponseRedirect
-from django.utils.timezone import now
-from .models import EmailLog
-import logging
-import csv
-from io import TextIOWrapper
-from django.core.validators import validate_email
-from django.core.exceptions import ValidationError
 
 logger = logging.getLogger(__name__)
 
@@ -774,6 +770,9 @@ def get_email_original(request):
 def get_email(request):
     """Fetch the email template with HTML formatting"""
     template = cache.get('Template')
+
+    if not template:
+        return JsonResponse({'error': 'No email template found'}, status=404)
     subject = template['Subject']
     message = f"{template['Body']}\n\n"
 
@@ -846,6 +845,9 @@ def get_email(request):
 def get_email_normal(request):
     """Fetch the email template without HTML formatting for normal users"""
     template = cache.get('Template')
+
+    if not template:
+        return JsonResponse({'error': 'No email template found'}, status=404)
     subject = template['Subject']
     message = f"{template['Body']}\n\n"
 
