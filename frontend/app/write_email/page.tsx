@@ -5,7 +5,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { FaCode, FaEye  } from 'react-icons/fa';
+import { FaCode, FaEye, FaCopy } from 'react-icons/fa';
 import { Input } from '@/components/ui/input';
 import React, { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
@@ -342,6 +342,7 @@ function EmailPage() {
       const data = await response.json();
       setEmailSubject(data.Subject);
       setEmailBody(data.Body);
+      setViewMode("RAW")
       setIsEmailGenerated(true);
     } catch (error) {
       console.error('Error fetching email data:', error);
@@ -445,6 +446,26 @@ function EmailPage() {
       setIsLoading(false);
     }
   }
+
+  const copyHtmlToClipboard = () => {
+    if (!isEmailGenerated) {
+      toast.error('Please generate an email first.');
+      return;
+    }
+    
+    if (viewMode !== 'HTML') {
+      toast.error('Switch to HTML view to copy HTML content.');
+      return;
+    }
+    
+    try {
+      navigator.clipboard.writeText(emailBody);
+      toast.success('HTML copied to clipboard!');
+    } catch (error) {
+      console.error('Failed to copy HTML:', error);
+      toast.error('Failed to copy to clipboard. Please try again.');
+    }
+  };
   
 
   return (
@@ -491,19 +512,19 @@ function EmailPage() {
               />
             ) : (
               <div
-                className="text-lg w-full h-[82%] pl-10 pt-5 bg-white rounded-b-lg overflow-auto"
+                className="text-lg w-full h-[76%] pl-10 pt-5 bg-white rounded-b-lg overflow-scroll"
                 dangerouslySetInnerHTML={{ __html: emailBody }}
               />
             )}
-            <div className="mt-2 flex justify-start">
+            <div className="mt-2 flex justify-between items-center">
               <label className="inline-flex items-center cursor-pointer">
-                <span className="mr-3 text-white text-lg">RAW</span>
+                <span className="mr-3 text-white text-lg">Text</span>
                 <input
                   type="checkbox"
                   className="sr-only peer"
                   checked={viewMode === 'HTML'}
                   onChange={handleToggleView}
-                  disabled={!isEmailGenerated} // Disable toggle if email not generated
+                  disabled={!isEmailGenerated}
                 />
                 <div
                   className={`relative w-11 h-6 rounded-full peer peer-focus:ring-2 peer-focus:ring-blue-300 dark:peer-focus:ring-blue-800 after:content-[''] after:absolute after:top-0.5 after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:after:translate-x-full peer-checked:after:border-white peer-checked:bg-blue-600 ${
@@ -512,6 +533,18 @@ function EmailPage() {
                 ></div>
                 <span className="ml-3 text-white text-lg">HTML</span>
               </label>
+              <Button
+                className={`ml-4 text-sm flex items-center gap-1 ${
+                  viewMode === 'HTML' && isEmailGenerated 
+                    ? 'bg-blue-600 hover:bg-blue-700' 
+                    : 'bg-gray-400 cursor-not-allowed'
+                }`}
+                onClick={copyHtmlToClipboard}
+                disabled={viewMode !== 'HTML' || !isEmailGenerated}
+              >
+                <FaCopy className="mr-1" />
+                Copy HTML
+              </Button>
             </div>
           </div>
 
