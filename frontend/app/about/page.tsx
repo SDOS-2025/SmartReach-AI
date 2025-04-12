@@ -134,6 +134,19 @@ function AboutUsPage() {
           </div>
         </div>
       </div>
+      {/* Contact Section */}
+      <div className="mb-10 text-center text-white">
+        <h2 className="text-xl font-semibold mb-4">Contact Us</h2>
+        <p className="text-gray-300 text-sm">
+          For inquiries or feedback, feel free to reach out at{' '}
+          <a
+            href="mailto:smartreachai14@gmail.com"
+            className="text-blue-400 hover:underline hover:text-blue-300 transition-colors"
+          >
+            smartreachai14@gmail.com
+          </a>
+        </p>
+      </div>
 
       {/* Footer */}
       <Footer />
