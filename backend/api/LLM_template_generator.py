@@ -1,39 +1,34 @@
 from .oauth_settings import gemma_key, server_ip, server_port, groq_api_key, google_api_key, oopspam_key
 
-# Core modules
+# LangChain Core
 from langchain_core.prompts import PromptTemplate
-from langchain_core.runnables import RunnableLambda
+from langchain_core.runnables import RunnableLambda, Runnable
 from langchain_core.output_parsers import StrOutputParser
+from langchain.schema import Document
 
-# Community integrations (e.g., OpenAI, FAISS, etc.)
-from langchain_community.llms import OpenAI
-from langchain_community.document_loaders import TextLoader
+# LangChain Community integrations
+from langchain_community.chat_models import ChatOpenAI
+from langchain_community.llms import HuggingFacePipeline, OpenAI
 from langchain_community.vectorstores import FAISS
-from langchain_community.embeddings import OpenAIEmbeddings
-
-# Utilities
-from langchain.text_splitter import RecursiveCharacterTextSplitter
-
+from langchain_community.embeddings import HuggingFaceEmbeddings, OpenAIEmbeddings
 from langchain_community.document_loaders import TextLoader
-from langchain.vectorstores import FAISS
-from langchain.embeddings import HuggingFaceEmbeddings
+
+# LangChain Utility modules
 from langchain.prompts import ChatPromptTemplate
 from langchain.chains import RetrievalQA
-from langchain.chat_models import ChatOpenAI
-from langchain.schema import Document
-from langchain_core.runnables import Runnable
-from langchain.prompts import ChatPromptTemplate
-from langchain_core.output_parsers import StrOutputParser
-from typing import List, Dict
-from langchain.llms import HuggingFacePipeline
-from transformers import AutoTokenizer, AutoModelForCausalLM, pipeline
+from langchain.text_splitter import RecursiveCharacterTextSplitter
+
+# Transformers
+from transformers import AutoTokenizer, AutoModelForCausalLM, pipeline, BitsAndBytesConfig
 import torch
-from transformers import AutoTokenizer, AutoModelForCausalLM, BitsAndBytesConfig
-from huggingface_hub import login
-from transformers import pipeline
-from openai import OpenAI
-import requests
 import gc
+
+# External APIs
+from huggingface_hub import login
+import requests
+
+# Typing
+from typing import List, Dict
 
 class TemplateGenerator:
     def __init__(self,
