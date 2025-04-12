@@ -99,8 +99,6 @@ def auth_complete(request):
         cache.set('user_id', request.user.user_id, timeout=3600)
         token, _ = Token.objects.get_or_create(user=request.user)
 
-        print(token)
-
         response = HttpResponse(
             f"""
             <!DOCTYPE html>
@@ -1127,7 +1125,8 @@ def delete_users(request):
 def get_username(request):
     user_id = cache.get('user_id')
     user = User.objects.filter(user_id=user_id)
-    print(user.values('username'))
-    print(user.values('email'))
+
+    if not user:
+        return JsonResponse({'error': 'User not found'}, status=404)
     
     return JsonResponse(user.values('username','email')[0])
