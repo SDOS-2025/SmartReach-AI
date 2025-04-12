@@ -67,7 +67,7 @@ def send_scheduled_email(self, organization_id, campaign_id, user_email, subject
                                     <p style="margin: 0 0 10px;">You’re receiving this email because you subscribed to {name} updates.</p>
                                     <p style="margin: 10px 0 0;">©️ 2025 {name}. All rights reserved.</p>
                                     <!-- Tracking Pixel -->
-                                    <img src="{open_url}" width="1" height="1" border="0" alt="" style="display: block; height: 1px !important; width: 1px !important; border: 0 !important; margin: 0 !important; padding: 0 !important;" />
+                                    <img src="{open_url}" width="1" height="1" alt="" style="display:block!important;max-height:0px!important;max-width:0px!important;overflow:hidden!important;opacity:0!important;position:absolute!important;" />
                                 </td>
                             </tr>
                         </table>

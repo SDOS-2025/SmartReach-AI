@@ -65,8 +65,12 @@ const LoginCard = ({ view, setView }: LoginCardProps) => {
       if (!response.ok) {
         console.log("Status Code:", response.status);
         console.error('Login error:', data);
-        if (data?.error === "Wrong email or password!") {
-          setLoginErrorMessage("Wrong email or password!");
+        if (data?.error === "Invalid email address") {
+          setLoginErrorMessage("Invalid email address.");
+        } else if (data?.error === "Wrong password") {
+          setLoginErrorMessage("Wrong password.");
+        } else if (data?.error === "User not found") {
+          setLoginErrorMessage("User not found.");
         } else {
           setLoginErrorMessage("An unexpected error occurred.");
         }
