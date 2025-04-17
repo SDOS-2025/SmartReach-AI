@@ -13,7 +13,7 @@ https://docs.djangoproject.com/en/5.1/ref/settings/
 from pathlib import Path
 import os
 # Import settings from oauth_settings.py
-from .oauth_settings import GOOGLE_OAUTH2_CLIENT_ID, GOOGLE_OAUTH2_CLIENT_SECRET, host, user, password, database, port
+from .oauth_settings import GOOGLE_OAUTH2_CLIENT_ID, GOOGLE_OAUTH2_CLIENT_SECRET, host, user, password, database, port, smartreach_password, test_host, test_user, test_password, test_database, test_port
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -28,7 +28,7 @@ SECRET_KEY = 'django-insecure-2f#z$_md2-tr0gs+z6%4t0^r05$1#*2@6-#pm%$1f@n%mrpzgb
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = False
 
-ALLOWED_HOSTS = ['smartreachai.social', '172.30.2.113', 'localhost']
+ALLOWED_HOSTS = ['smartreachai.social', '172.30.2.113', 'localhost', '127.0.0.1']
 
 
 # Application definition
@@ -42,6 +42,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'corsheaders',
     'rest_framework',
+    'rest_framework.authtoken',
     'api.apps.ApiConfig',
     'social_django',
 ]
@@ -142,6 +143,14 @@ DATABASES = {
         'PASSWORD': password,
         'HOST': host,
         'PORT': port,
+    },
+    'testdb': {
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': test_database,
+        'USER': test_user,
+        'PASSWORD': test_password,
+        'HOST': test_host,
+        'PORT': test_port,
     }
 }
 
@@ -215,7 +224,6 @@ SOCIAL_AUTH_ALLOWED_REDIRECT_HOSTS = ['localhost:3000', 'localhost:8000', 'smart
 CSRF_COOKIE_SECURE = False  # Set to True in production with HTTPS
 CSRF_TRUSTED_ORIGINS = [
     "http://localhost:3000",
-    "smartreachai.social"
 ]
 
 # Debug Settings
@@ -224,11 +232,14 @@ RAISE_EXCEPTIONS = True
 
 # Session Settings
 SESSION_ENGINE = 'django.contrib.sessions.backends.db'
-SESSION_COOKIE_SECURE = False
-SESSION_COOKIE_HTTPONLY = True
-SESSION_COOKIE_SAMESITE = None
-CSRF_COOKIE_SAMESITE = None
+SESSION_COOKIE_SECURE = True  # Keep secure for HTTPS
+SESSION_COOKIE_HTTPONLY = True  # Prevent JavaScript access
+SESSION_COOKIE_SAMESITE = 'Lax'  # Allow session cookies to be sent with same-site requests
+CSRF_COOKIE_SECURE = True  # Secure for CSRF over HTTPS
+CSRF_COOKIE_HTTPONLY = True  # Prevent JavaScript access to CSRF cookies
+CSRF_COOKIE_SAMESITE = 'Lax'  # SameSite protection for CSRF
 SESSION_COOKIE_NAME = 'sessionid'
+SESSION_COOKIE_AGE = 86400  # 1 day expiry
 
 # Social Auth Settings
 SOCIAL_AUTH_GOOGLE_OAUTH2_KEY = GOOGLE_OAUTH2_CLIENT_ID
@@ -238,7 +249,7 @@ SOCIAL_AUTH_GOOGLE_OAUTH2_REDIRECT_URI = 'http://localhost:8000/social-auth/comp
 # URLs
 LOGIN_URL = '/login'
 LOGIN_REDIRECT_URL = 'http://localhost:3000/write-email/'
-SOCIAL_AUTH_LOGIN_REDIRECT_URL = 'http://localhost:3000/write-email/'
+SOCIAL_AUTH_LOGIN_REDIRECT_URL = 'http://localhost:8000/api/auth-complete/'
 SOCIAL_AUTH_LOGIN_ERROR_URL = 'http://localhost:3000/error'
 
 # CORS Settings
@@ -263,3 +274,11 @@ SOCIAL_AUTH_USER_MODEL = 'api.User'
 CELERY_BROKER_URL = "redis://localhost:6379/0"
 CELERY_ACCEPT_CONTENT = ["json"]
 CELERY_TASK_SERIALIZER = "json"
+
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST = 'smtp.gmail.com'
+EMAIL_PORT = 587
+EMAIL_USE_TLS = True
+EMAIL_HOST_USER = 'noelab04@gmail.com'
+EMAIL_HOST_PASSWORD =  smartreach_password
+DEFAULT_FROM_EMAIL = 'SmartReachAI <noreply@smartreachai.com>'

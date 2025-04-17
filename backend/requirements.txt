@@ -1,8 +1,10 @@
 celery
+redis
 django
 django-cors-headers
 djangorestframework
 social-auth-app-django
+psycopg2-binary
 psycopg2-binary
 pytz
 pandas
@@ -11,4 +13,14 @@ scikit-learn
 openai
 requests
 gunicorn
-openai
+google-generativeai
+groq
+langchain 
+tiktoken 
+faiss-cpu 
+chromadb 
+unstructured
+langchain-core 
+langchain-community
+transformers
+torch

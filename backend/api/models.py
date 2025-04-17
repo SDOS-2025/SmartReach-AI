@@ -96,8 +96,7 @@ class CompanyUserEngagement(models.Model):
     org_id = models.ForeignKey(Organization, on_delete=models.CASCADE, related_name="org_user_engagement", to_field="org_id")
     send_time = models.DateTimeField()
     open_time = models.DateTimeField(null=True, blank=True)
-    click_rate = models.FloatField()
-    open_rate = models.FloatField()
+    click_time = models.DateTimeField(null = True,blank = True)
     engagement_delay = models.FloatField()
 
     class Meta:
@@ -113,7 +112,6 @@ class CampaignStatistics(models.Model):
     user_click_rate = models.FloatField()
     user_open_rate = models.FloatField()
     user_engagement_delay = models.FloatField()
-    user_engagement_rate = models.FloatField()
 
     class Meta:
         db_table = 'campaign_statistics'
@@ -121,17 +119,13 @@ class CampaignStatistics(models.Model):
 
     def __str__(self):
         return self.campaign_id
-    
-
-
-
-
+        
 class EmailLog(models.Model):
     organization_id = models.IntegerField()
     user_email = models.EmailField()
-    subject = models.CharField(max_length=255)
+    subject = models.CharField(max_length=1024)
     sent_at = models.DateTimeField(default=now)
-    status = models.CharField(max_length=255)  # Sent, Failed, Clicked
+    status = models.CharField(max_length=1024)  # Sent, Failed, Clicked
     clicked_at = models.DateTimeField(null=True, blank=True)
     class Meta:
         db_table = 'email_log'

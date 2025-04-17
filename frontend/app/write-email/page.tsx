@@ -7,98 +7,110 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { FaArrowRight, FaArrowLeft, FaQuestion, FaDatabase, FaTelegramPlane } from 'react-icons/fa';
 import { Input } from '@/components/ui/input';
-import { Checkbox } from '@radix-ui/react-checkbox';
-import { useRef } from 'react';
+import React, { useEffect } from 'react';
+import { useRouter } from 'next/navigation';
+import { toast } from 'sonner';
+
 
 function EmailPage() {
+
+  
+  
   const [currentStep, setCurrentStep] = useState(1);
-  const [forlgata, setForlgata] = useState({
-    category: '',
-    tone: '',
-    contentType: '',
-    companyDescription: '',
-    emailPurpose: '',
-    audienceType: '',
-    preferredLength: '',
-    cta: '',
-    customCta: '',
-    emailStructure: '',
-  });
-  const [step2Data, setStep2Data] = useState({
-    callToAction: '',
-    urgency: '',
-    additionalInfo: '',
-  });
-  const [step3Data, setStep3Data] = useState<{
-    scheduleDate: string;
-    scheduleTime: string;
-    goal: string;
-    timezones: string[]; // ✅ Ensure this is string[]
-    timezoneOther: string;
-    behavior: string;
-    dataUpload: File | null; // ✅ Explicit type for files
-    frequency: string;
-    frequencyCustom: string;
-    industry: string;
-    abTest: boolean;
+  useEffect(() => {
+    if (currentStep === 3) {
+      const timeout = setTimeout(() => {
+        alert("Campaign scheduled successfully!");
+        router.push("/home");
+      }, 3000);
+  
+      return () => clearTimeout(timeout);
+    }
+  }, [currentStep]);
+  const [forlgata, setForlgata] =useState<{
+    category: string,
+    companyURL: string,
+    tone: string,
+    contentType: string,
+    companyDescription: string,
+    emailPurpose: string,
+    audienceType: string,
+    preferredLength: string,
+    cta: string,
+    customCta: string,
+    emailStructure: string,
   }>({
-    scheduleDate: '',
-    scheduleTime: '',
-    goal: '',
-    timezones: [], // ✅ Initialize as an empty string array
-    timezoneOther: '',
-    behavior: '',
-    dataUpload: null,
-    frequency: '',
-    frequencyCustom: '',
-    industry: '',
-    abTest: false,
+    category: 'ecommerce',
+    companyURL: 'smartreachai.social',
+    tone: 'friendly',
+    contentType: 'promotional',
+    companyDescription: 'This is for test',
+    emailPurpose: 'This is for test',
+    audienceType: 'subscribedCustomers',
+    preferredLength: 'short',
+    cta: 'buyNow',
+    customCta: '',
+    emailStructure: 'promotional',
   });
-  const [showErrors, setShowErrors] = useState(false); // Controls error message visibility
+  
+  const [step2Data, setStep2Data] = useState<{
+    campaignName: string;
+    campaignDesc: string;
+    startDate: string;
+    startTime: string;
+    endDate: string;
+    dataUpload: File | null; 
+
+  }>({
+    campaignName: '',
+    campaignDesc: '',
+    startDate: '',
+    startTime: '',
+    endDate: '',
+    dataUpload: null,
+  });
+  const [showErrors, setShowErrors] = useState(false); 
+  const [isEmailGenerated, setIsEmailGenerated] = useState(false);
+  const [isTimeDataAdded, setIsTimeDataAdded] = useState(false);
+
+  const [emailSubject, setEmailSubject] = useState('');
+  const [emailBody, setEmailBody] = useState('');
+
+  const [isLoading, setIsLoading] = useState(false);
+  const [loadingTime, setLoadingTime] = useState(0);
 
   const handleSelectChange = (field: string) => (value: string) => {
     setForlgata((prev) => ({ ...prev, [field]: value }));
   };
 
   const handleTextChange = (field: string) => (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    let text = e.target.value;
+    let words = text.trim().split(/\s+/); 
+
+    if (words.length > 100) {
+      text = words.slice(0, 100).join(" "); 
+    }
+
     setForlgata((prev) => ({ ...prev, [field]: e.target.value }));
   };
 
-  const handleStep2SelectChange = (field: string) => (value: string) => {
-    setStep2Data((prev) => ({ ...prev, [field]: value }));
-  };
-
-  const handleStep2TextChange = (field: string) => (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+  const handleStep2InputChange = (field: string) => (e: React.ChangeEvent<HTMLInputElement>) => {
     setStep2Data((prev) => ({ ...prev, [field]: e.target.value }));
   };
 
-  const handleStep3InputChange = (field: string) => (e: React.ChangeEvent<HTMLInputElement>) => {
-    setStep3Data((prev) => ({ ...prev, [field]: e.target.value }));
-  };
+  const handleStep2TextChange = (field: string) => (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    let text = e.target.value;
+    let words = text.trim().split(/\s+/); 
 
-  const handleStep3SelectChange = (field: string) => (value: string) => {
-    setStep3Data((prev) => ({ ...prev, [field]: value }));
-  };
-
-  const handleStep3TextChange = (field: string) => (e: React.ChangeEvent<HTMLTextAreaElement>) => {
-    setStep3Data((prev) => ({ ...prev, [field]: e.target.value }));
-  };
-
-  const handleCheckboxChange = (field: string) => (checked: boolean) => {
-    if (field === 'abTest') {
-      setStep3Data((prev) => ({ ...prev, abTest: checked }));
-    } else {
-      setStep3Data((prev) => ({
-        ...prev,
-        timezones: checked
-          ? [...prev.timezones, field]
-          : prev.timezones.filter((tz) => tz !== field),
-      }));
+    if (words.length > 100) {
+      text = words.slice(0, 100).join(" "); 
     }
+
+    setStep2Data((prev) => ({ ...prev, [field]: e.target.value }));
   };
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setStep3Data((prev) => ({ ...prev, dataUpload: e.target.files ? e.target.files[0] : null }));
+    setStep2Data((prev) => ({ ...prev, dataUpload: e.target.files ? e.target.files[0] : null }));
   };
 
   // Validation functions
@@ -120,28 +132,42 @@ function EmailPage() {
   };
 
   const isStep2Valid = () => {
-    return step2Data.callToAction.trim() !== '' && step2Data.urgency.trim() !== '';
-  };
-
-  const isStep3Valid = () => {
     return (
-      step3Data.scheduleDate.trim() !== '' &&
-      step3Data.scheduleTime.trim() !== '' &&
-      step3Data.goal.trim() !== '' &&
-      (step3Data.timezones.length > 0 || step3Data.timezoneOther.trim() !== '') &&
-      step3Data.frequency.trim() !== ''
+      step2Data.campaignName.trim() !== '' &&
+      step2Data.campaignDesc.trim() !== '' &&
+      step2Data.startDate.trim() !== '' &&
+      step2Data.startTime.trim() !== '' &&
+      step2Data.endDate.trim() != ''
     );
   };
 
   const renderStep1 = () => (
     <div className="flex-[6] overflow-y-auto h-full px-10 text-lg">
+      <div className="mb-6">
+        <Label htmlFor="companyURL" className="text-lg">
+          What is the company website ?
+        </Label>
+        <div className="mt-2 flex gap-4">
+          <Input
+            type="text"
+            name="companyURL"
+            id="companyURL"
+            maxLength={100}
+            className="w-1/2 h-14 p-2 border border-gray-300 rounded-lg bg-gray-100"
+            value={forlgata.companyURL}
+            onChange={handleTextChange('companyURL')}
+            required
+          />          
+        </div>
+      </div>
+
       <div className="mb-4">
         <Label htmlFor="category" className="text-lg">
           Category & Subcategory <span className="text-red-500">*</span>
         </Label>
         <Select name="category" value={forlgata.category} onValueChange={handleSelectChange('category')}>
           <SelectTrigger className="w-full h-14 mt-2 bg-gray-100 p-2 border border-gray-300 rounded-lg">
-            <SelectValue placeholder="Choose" />
+            <SelectValue placeholder="Choose"  />
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="ecommerce">E-commerce</SelectItem>
@@ -203,7 +229,6 @@ function EmailPage() {
           id="companyDescription"
           placeholder="A short introduction about the brand"
           className="w-full h-20 mt-2 p-2 border border-gray-300 rounded-lg bg-gray-100 resize-none"
-          maxLength={100}
           value={forlgata.companyDescription}
           onChange={handleTextChange('companyDescription')}
           required
@@ -312,61 +337,87 @@ function EmailPage() {
 
   const renderStep2 = () => (
     <div className="flex-[6] overflow-y-auto h-full px-10 text-lg">
-      <div className="mb-4">
-        <Label htmlFor="callToAction" className="text-lg">
-          What is your call to action? <span className="text-red-500">*</span>
+      <div className="mb-6">
+        <Label htmlFor="campaignName" className="text-lg">
+          What is the campaign name ?<span className="text-red-500">*</span>
         </Label>
-        <Select name="callToAction" value={step2Data.callToAction} onValueChange={handleStep2SelectChange('callToAction')}>
-          <SelectTrigger className="w-full h-14 mt-2 bg-gray-100 p-2 border border-gray-300 rounded-lg">
-            <SelectValue placeholder="Choose" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="reply">Reply to this email</SelectItem>
-            <SelectItem value="visit">Visit a website</SelectItem>
-            <SelectItem value="purchase">Make a purchase</SelectItem>
-            <SelectItem value="signup">Sign up</SelectItem>
-            <SelectItem value="contact">Contact us</SelectItem>
-          </SelectContent>
-        </Select>
-        {showErrors && !step2Data.callToAction && <p className="text-red-500 text-sm mt-1">This field is required</p>}
+        <div className="mt-2 flex gap-4">
+          <Input
+            type="text"
+            name="campaignName"
+            id="campaignName"
+            maxLength={100}
+            className="w-1/2 h-14 p-2 border border-gray-300 rounded-lg bg-gray-100"
+            value={step2Data.campaignName}
+            onChange={handleStep2InputChange('campaignName')}
+            required
+          />
+          {showErrors && !step2Data.campaignName && <p className="text-red-500 text-sm mt-1">campaignName is required</p>}
+          
+        </div>
       </div>
-      <div className="mb-4">
-        <Label htmlFor="urgency" className="text-lg">
-          How urgent is this email? <span className="text-red-500">*</span>
-        </Label>
-        <Select name="urgency" value={step2Data.urgency} onValueChange={handleStep2SelectChange('urgency')}>
-          <SelectTrigger className="w-full h-14 mt-2 bg-gray-100 p-2 border border-gray-300 rounded-lg">
-            <SelectValue placeholder="Choose" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="immediate">Immediate</SelectItem>
-            <SelectItem value="soon">Within a few days</SelectItem>
-            <SelectItem value="week">Within a week</SelectItem>
-            <SelectItem value="month">Within a month</SelectItem>
-            <SelectItem value="noRush">No rush</SelectItem>
-          </SelectContent>
-        </Select>
-        {showErrors && !step2Data.urgency && <p className="text-red-500 text-sm mt-1">This field is required</p>}
-      </div>
-      <div className="mb-4">
-        <Label htmlFor="additionalInfo" className="text-lg">Any additional information to include?</Label>
-        <Textarea
-          name="additionalInfo"
-          id="additionalInfo"
-          placeholder="Enter Text"
-          className="w-full h-20 mt-2 p-2 resize-none border border-gray-300 rounded-lg bg-gray-100"
-          value={step2Data.additionalInfo}
-          onChange={handleStep2TextChange('additionalInfo')}
-        />
-      </div>
-    </div>
-  );
 
-  const renderStep3 = () => (
-    <div className="flex-[6] overflow-y-auto h-full px-10 text-lg">
+
+      <div className="mb-6">
+        <Label htmlFor="campaignDesc" className="text-lg">
+          Enter the campaign description <span className="text-red-500">*</span>
+        </Label>
+        <div className="mt-2 flex gap-4">
+          <Textarea
+            name="campaignDesc"
+            id="campaignDesc"
+            placeholder="A short introduction about the campaign"
+            className="w-full h-20 mt-2 p-2 border border-gray-300 rounded-lg bg-gray-100 resize-none"
+            value={step2Data.campaignDesc}
+            onChange={handleStep2TextChange('campaignDesc')}
+            required
+          />
+          {showErrors && !step2Data.campaignDesc && <p className="text-red-500 text-sm mt-1">campaignDesc is required</p>}
+          
+        </div>
+      </div>
+
+      <div className="mb-6">
+        <div className="flex justify-between items-center">
+    <Label htmlFor="schedule" className="text-lg">
+      When would you like to start your campaign? <span className="text-red-500">*</span>
+    </Label>
+    <button
+      type="button"
+      onClick={fetchAndAutofillOptimalStartTime}
+      className="text-sm text-blue-600 hover:underline"
+    >
+      Autofill Optimal Time
+    </button>
+      </div>
+
+        <div className="mt-2 flex gap-4">
+          <Input
+            type="date"
+            name="startDate"
+            id="startDate"
+            className="w-1/2 h-14 p-2 border border-gray-300 rounded-lg bg-gray-100"
+            value={step2Data.startDate}
+            onChange={handleStep2InputChange('startDate')}
+            required
+          />
+          {showErrors && !step2Data.startDate && <p className="text-red-500 text-sm mt-1">Date is required</p>}
+          <Input
+            type="time"
+            name="scheduleTime"
+            id="scheduleTime"
+            className="w-1/2 h-14 p-2 border border-gray-300 rounded-lg bg-gray-100"
+            value={step2Data.startTime}
+            onChange={handleStep2InputChange('startTime')}
+            required
+          />
+          {showErrors && !step2Data.startTime && <p className="text-red-500 text-sm mt-1">Time is required</p>}
+        </div>
+      </div>
+
       <div className="mb-6">
         <Label htmlFor="schedule" className="text-lg">
-          When would you like to schedule your campaign? <span className="text-red-500">*</span>
+          When would you like to end your campaign? <span className="text-red-500">*</span>
         </Label>
         <div className="mt-2 flex gap-4">
           <Input
@@ -374,196 +425,77 @@ function EmailPage() {
             name="scheduleDate"
             id="scheduleDate"
             className="w-1/2 h-14 p-2 border border-gray-300 rounded-lg bg-gray-100"
-            value={step3Data.scheduleDate}
-            onChange={handleStep3InputChange('scheduleDate')}
+            value={step2Data.endDate}
+            onChange={handleStep2InputChange('endDate')}
             required
           />
-          {showErrors && !step3Data.scheduleDate && <p className="text-red-500 text-sm mt-1">Date is required</p>}
-          <Input
-            type="time"
-            name="scheduleTime"
-            id="scheduleTime"
-            className="w-1/2 h-14 p-2 border border-gray-300 rounded-lg bg-gray-100"
-            value={step3Data.scheduleTime}
-            onChange={handleStep3InputChange('scheduleTime')}
-            required
-          />
-          {showErrors && !step3Data.scheduleTime && <p className="text-red-500 text-sm mt-1">Time is required</p>}
+          {showErrors && !step2Data.endDate && <p className="text-red-500 text-sm mt-1">Date is required</p>}
+          
         </div>
       </div>
-      <div className="mb-6">
-        <Label htmlFor="goal" className="text-lg">
-          What is your primary goal for send-time optimization? <span className="text-red-500">*</span>
-        </Label>
-        <Select name="goal" value={step3Data.goal} onValueChange={handleStep3SelectChange('goal')}>
-          <SelectTrigger className="w-full h-14 mt-2 bg-gray-100 p-2 border border-gray-300 rounded-lg">
-            <SelectValue placeholder="Select a goal" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="open-rates">Maximize open rates</SelectItem>
-            <SelectItem value="click-through">Increase click-through rates</SelectItem>
-            <SelectItem value="conversions">Drive conversions (e.g., sales, sign-ups)</SelectItem>
-            <SelectItem value="engagement">Boost overall engagement</SelectItem>
-          </SelectContent>
-        </Select>
-        {showErrors && !step3Data.goal && <p className="text-red-500 text-sm mt-1">This field is required</p>}
-      </div>
-      <div className="mb-6">
-        <Label className="text-lg">
-          Which timezone(s) does your audience reside in? (Select at least one) <span className="text-red-500">*</span>
-        </Label>
-        <div className="mt-2 space-y-2">
-          <div className="flex items-center gap-2">
-            <Checkbox
-              id="tz-america"
-              name="timezone"
-              value="America/New_York"
-              className="w-5 h-5 border border-gray-400 rounded-sm bg-white data-[state=checked]:bg-blue-500"
-              checked={step3Data.timezones.includes('America/New_York')}
-              onCheckedChange={handleCheckboxChange('America/New_York')}
-            />
-            <Label htmlFor="tz-america">America (e.g., EST, PST)</Label>
-          </div>
-          <div className="flex items-center gap-2">
-            <Checkbox
-              id="tz-europe"
-              name="timezone"
-              value="Europe/London"
-              className="w-5 h-5 border border-gray-400 rounded-sm bg-white data-[state=checked]:bg-blue-500"
-              checked={step3Data.timezones.includes('Europe/London')}
-              onCheckedChange={handleCheckboxChange('Europe/London')}
-            />
-            <Label htmlFor="tz-europe">Europe (e.g., GMT, CET)</Label>
-          </div>
-          <div className="flex items-center gap-2">
-            <Checkbox
-              id="tz-asia"
-              name="timezone"
-              value="Asia/Tokyo"
-              className="w-5 h-5 border border-gray-400 rounded-sm bg-white data-[state=checked]:bg-blue-500"
-              checked={step3Data.timezones.includes('Asia/Tokyo')}
-              onCheckedChange={handleCheckboxChange('Asia/Tokyo')}
-            />
-            <Label htmlFor="tz-asia">Asia (e.g., IST, JST)</Label>
-          </div>
-          <div className="flex items-center gap-2">
-            <Checkbox
-              id="tz-other"
-              name="timezone"
-              value="other"
-              className="w-5 h-5 border border-gray-400 rounded-sm bg-white data-[state=checked]:bg-blue-500"
-              checked={step3Data.timezones.includes('other')}
-              onCheckedChange={handleCheckboxChange('other')}
-            />
-            <Label htmlFor="tz-other">Other (specify below)</Label>
-          </div>
-          <Input
-            type="text"
-            name="timezoneOther"
-            placeholder="Enter custom timezone (e.g., Australia/Sydney)"
-            className="w-full h-12 mt-2 p-2 border border-gray-300 rounded-lg bg-gray-100"
-            value={step3Data.timezoneOther}
-            onChange={handleStep3InputChange('timezoneOther')}
-          />
-          {showErrors && step3Data.timezones.length === 0 && !step3Data.timezoneOther && (
-            <p className="text-red-500 text-sm mt-1">At least one timezone is required</p>
-          )}
-        </div>
-      </div>
-      <div className="mb-6">
-        <Label htmlFor="behavior" className="text-lg">When is your audience most active? (Optional)</Label>
-        <Textarea
-          name="behavior"
-          id="behavior"
-          placeholder="e.g., weekday mornings, weekend evenings"
-          className="w-full h-20 mt-2 p-2 border border-gray-300 resize-none rounded-lg bg-gray-100"
-          value={step3Data.behavior}
-          onChange={handleStep3TextChange('behavior')}
-        />
-      </div>
+      
       <div className="mb-6">
         <Label htmlFor="dataUpload" className="text-lg">Upload past campaign data (Optional)</Label>
         <Input
           type="file"
           name="dataUpload"
           id="dataUpload"
-          accept=".csv,.pdf,.txt"
+          accept=".csv"
           className="w-full h-14 mt-2 p-2 border border-gray-300 rounded-lg bg-gray-100"
           onChange={handleFileChange}
+          
         />
-        <p className="text-sm text-gray-500 mt-1">Accepted formats: CSV, PDF, TXT</p>
+        <p className="text-sm text-gray-500 mt-1">Accepted formats: CSV</p>
       </div>
-      <div className="mb-6">
-        <Label htmlFor="frequency" className="text-lg">
-          How often will this campaign run? <span className="text-red-500">*</span>
-        </Label>
-        <Select name="frequency" value={step3Data.frequency} onValueChange={handleStep3SelectChange('frequency')}>
-          <SelectTrigger className="w-full h-14 mt-2 bg-gray-100 p-2 border border-gray-300 rounded-lg">
-            <SelectValue placeholder="Select frequency" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="one-time">One-time send</SelectItem>
-            <SelectItem value="daily">Daily</SelectItem>
-            <SelectItem value="weekly">Weekly</SelectItem>
-            <SelectItem value="monthly">Monthly</SelectItem>
-            <SelectItem value="custom">Custom (specify below)</SelectItem>
-          </SelectContent>
-        </Select>
-        {showErrors && !step3Data.frequency && <p className="text-red-500 text-sm mt-1">This field is required</p>}
-        <Input
-          type="text"
-          name="frequencyCustom"
-          placeholder="e.g., Every 3 days"
-          className="w-full h-12 mt-2 p-2 border border-gray-300 rounded-lg bg-gray-100"
-          value={step3Data.frequencyCustom}
-          onChange={handleStep3InputChange('frequencyCustom')}
-        />
-      </div>
-      <div className="mb-6">
-        <Label htmlFor="industry" className="text-lg">What industry or audience segment are you targeting?</Label>
-        <Input
-          type="text"
-          name="industry"
-          id="industry"
-          placeholder="e.g., e-commerce, B2B, healthcare"
-          className="w-full h-14 mt-2 p-2 border border-gray-300 rounded-lg bg-gray-100"
-          value={step3Data.industry}
-          onChange={handleStep3InputChange('industry')}
-        />
-      </div>
-      <div className="mb-6">
-        <Label className="text-lg">Enable A/B testing for send times?</Label>
-        <div className="mt-2 flex items-center gap-2">
-          <Checkbox
-            id="abTest"
-            name="abTest"
-            className="w-5 h-5 border border-gray-400 rounded-sm bg-white data-[state=checked]:bg-blue-500"
-            checked={step3Data.abTest}
-            onCheckedChange={handleCheckboxChange('abTest')}
-          />
-          <Label htmlFor="abTest">Yes, split my audience to test two send times</Label>
-        </div>
-      </div>
+      
     </div>
   );
 
-  const handleNextStep = (direction: number) => {
+  const renderStep3 = () => (
+    <div className="flex-[6] overflow-y-auto h-full px-10 text-lg flex flex-col items-center justify-center">
+      <h2 className="text-2xl font-bold text-gray-800 mb-4">Step 3: Congrats!</h2>
+      <audio autoPlay loop className="hidden">
+        Your browser does not support the audio element.
+      </audio>
+      <p className="text-gray-600 mt-4">Mails have been sent!</p>
+    </div>
+  );
+
+  const handleNextStep = async (direction) => {
+    // Helper function to wait for a specified time
+    const delay = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+
     setCurrentStep((prevStep) => {
       const newStep = prevStep + direction;
       if (newStep < 1) return 1;
+
+      if (prevStep === 1 && direction === 1) {
+        updateEmail();
+        // Use an IIFE to handle the async delay within setState
+        (async () => {
+          await delay(50); // Wait 5 seconds
+          await getEmail();  // Then call getEmail
+        })();
+      }
+
+      if (prevStep === 2 && direction === -1) {
+        getEmailOriginal();
+      }
+
+      if (prevStep === 2 && direction === 1) {
+        sendTimeOptim();
+      }
+
       if (newStep > 3) return 3;
       return newStep;
     });
-    setShowErrors(false); // Reset error visibility on step change
+    setShowErrors(false);
   };
 
   const goToStep = (step: number) => {
     setCurrentStep(step);
-    setShowErrors(false); // Reset error visibility on step change
+    setShowErrors(false); 
   };
-
-  const subjectRef = useRef<HTMLTextAreaElement>(null);
-  const bodyRef = useRef<HTMLTextAreaElement>(null);
 
   const generateTemplate = async () => {
     setShowErrors(true);
@@ -572,6 +504,13 @@ function EmailPage() {
       return;
     }
 
+    setIsLoading(true);
+    const startTime = Date.now();
+    let timerInterval = setInterval(() => {
+      const elapsedTime = Math.floor((Date.now() - startTime) / 1000);
+      setLoadingTime(elapsedTime);
+    }, 1000);
+
     try {
       const response = await fetch('/api/generate-template', {
         method: 'POST',
@@ -579,12 +518,15 @@ function EmailPage() {
         body: JSON.stringify(forlgata),
       });
       const data = await response.json();
-      if (subjectRef.current && bodyRef.current) {
-        subjectRef.current.value = data.Subject;
-        bodyRef.current.value = data.Body;
-      }
+      setEmailSubject(data.Subject);
+      setEmailBody(data.Body);
+      setIsEmailGenerated(true);
     } catch (error) {
       console.error('Error fetching email data:', error);
+      setIsEmailGenerated(false);
+    } finally {
+      clearInterval(timerInterval);
+      setIsLoading(false);
     }
   };
 
@@ -596,54 +538,163 @@ function EmailPage() {
     }
 
     try {
-      const response = await fetch('/api/generate-template', {
+      const response = await fetch('http://localhost:8000/api/generate-template', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(step2Data),
+        headers: {
+          'Content-Type': 'application/json',
+          'X-CSRFToken': csrfToken, // Add CSRF token header
+        },
+        credentials: 'include', // Ensure cookies (including csrftoken) are sent
+        body: JSON.stringify({
+          Subject: emailSubject,
+          Body: emailBody,
+        }),
       });
+  
+      if (!response.ok) {
+        throw new Error('Failed to update email');
+      }
+  
       const data = await response.json();
-      console.log('Step 2 data added:', data);
+      console.log('Email updated successfully:', data);
     } catch (error) {
-      console.error('Error adding Step 2 data:', error);
+      console.error('Error updating email:', error);
+      toast.error('Failed to update email. Please try again.');
     }
   };
 
-  const addStep3Timings = async () => {
-    setShowErrors(true);
-    if (!isStep3Valid()) {
-      console.error('Please fill all required fields in Step 3');
+
+  const getEmailOriginal = async () => {
+    setIsLoading(true);
+    const startTime = Date.now();
+    let timerInterval = setInterval(() => {
+      const elapsedTime = Math.floor((Date.now() - startTime) / 1000);
+      setLoadingTime(elapsedTime);
+    }, 1000);
+
+    try {
+      const response = await fetch('http://localhost:8000/api/get-email-original/', {
+        method: 'GET',
+      });
+      const data = await response.json();
+      setEmailSubject(data.Subject);
+      setEmailBody(data.Body);
+      setIsEmailGenerated(true);
+    } catch (error) {
+      console.error('Error fetching email data:', error);
+      setIsEmailGenerated(false);
+    } finally {
+      clearInterval(timerInterval);
+      setIsLoading(false);
+    }
+  }
+
+  const getEmail = async () => {
+    setIsLoading(true);
+    const startTime = Date.now();
+    let timerInterval = setInterval(() => {
+      const elapsedTime = Math.floor((Date.now() - startTime) / 1000);
+      setLoadingTime(elapsedTime);
+    }, 1000);
+
+    try {
+      const response = await fetch('http://localhost:8000/api/get-email/', {
+        method: 'GET',
+      });
+      const data = await response.json();
+      setEmailSubject(data.Subject);
+      setEmailBody(data.Body);
+      setIsEmailGenerated(true);
+    } catch (error) {
+      console.error('Error fetching email data:', error);
+      setIsEmailGenerated(false);
+    } finally {
+      clearInterval(timerInterval);
+      setIsLoading(false);
+    }
+  }
+
+  const sendTimeOptim = async () => {
+    try {
+      const response = await fetch('http://localhost:8000/api/sto', {
+        method: 'GET',
+        headers: { 'Content-Type': 'application/json' },
+      });
+      if (!response.ok) {
+        throw new Error('Failed to trigger Step 3 endpoint');
+      }
+      const data = await response.json();
+      console.log('Step 3 GET request successful:', data);
+    } catch (error) {
+      console.error('Error with Step 3 GET request:', error);
+    }
+  }
+
+  const fetchAndAutofillOptimalStartTime = async () => {
+    try {
+      const response = await fetch('http://localhost:8000/api/optimal-start-time', {
+        method: 'GET',
+        headers: { 'Content-Type': 'application/json' },
+      });
+  
+      if (!response.ok) throw new Error('Failed to fetch optimal start time');
+  
+      const data = await response.json(); // expecting: { optimalStartDate: "2025-04-10", optimalStartTime: "10:30" }
+  
+      setStep2Data((prev) => ({
+        ...prev,
+        startDate: prev.startDate || data.optimalStartDate,
+        startTime: prev.startTime || data.optimalStartTime,
+      }));
+  
+      toast.success(
+        `Optimal start time recommended: ${data.optimalStartDate} at ${data.optimalStartTime}. Feel free to change.`,
+        {
+          duration: 6000,
+        }
+      );
+    } catch (error) {
+      console.error('Error fetching optimal start time:', error);
+      toast.error('Could not fetch recommended start time.');
+    }
+  };
+  
+  const addStep2Timings = async () => {
+    if (!isStep2Valid()) {
+      console.log(step2Data)
+      console.error('Please fill all required fields in Step 2');
+      setShowErrors(true);
       return;
     }
 
     const formData = new FormData();
     Object.entries(step3Data).forEach(([key, value]) => {
-      if (key === 'dataUpload' && value instanceof File) {
-        formData.append(key, value); // ✅ Ensure value is a File before appending
-      } else if (key === 'timezones' && Array.isArray(value)) {
-        formData.append(key, JSON.stringify(value)); // ✅ Convert array to JSON string
-      } else if (typeof value === 'boolean') {
-        formData.append(key, value.toString()); // ✅ Convert boolean to string
-      } else if (typeof value === 'string') {
-        formData.append(key, value); // ✅ Only append strings
+      if (key === 'dataUpload' && value) {
+        formData.append(key, value);
+      } else if (key === 'timezones') {
+        formData.append(key, JSON.stringify(value));
+      } else {
+        formData.append(key, value);
       }
     });
 
     try {
-      const response = await fetch('/api/generate-template', {
+      const response = await fetch('http://localhost:8000/api/generate-template', {
         method: 'POST',
         body: formData,
       });
       const data = await response.json();
-      console.log('Step 3 timings added:', data);
+      console.log('Step 2 timings added:', data);
+      setIsTimeDataAdded(true);
     } catch (error) {
-      console.error('Error adding Step 3 timings:', error);
+      console.error('Error adding Step 2 timings:', error);
     }
   };
 
   return (
     <div className="flex flex-col justify-start w-screen h-screen">
       <div className="h-20 flex-none">
-        <NavigationMenu />
+      <NavigationMenu />
       </div>
       <div className="flex flex-auto flex-col lg:flex-row">
         <div className="w-screen lg:w-[6rem] bg-[#0F142E] flex lg:flex-col justify-center items-center py-5 space-x-6 lg:space-y-12 lg:space-x-0">
@@ -657,12 +708,6 @@ function EmailPage() {
             className={`w-16 h-16 rounded-full hover:bg-[#A3A4B3] flex items-center justify-center p-0 ${currentStep === 2 ? 'bg-[#DCDDEB] text-black' : 'bg-[#494965] text-black'}`}
             onClick={() => goToStep(2)}
           >
-            {FaDatabase({ className: "!w-[40%] !h-[40%]" })}
-          </Button>
-          <Button
-            className={`w-16 h-16 rounded-full hover:bg-[#A3A4B3] flex items-center justify-center p-0 ${currentStep === 3 ? 'bg-[#DCDDEB] text-black' : 'bg-[#494965] text-black'}`}
-            onClick={() => goToStep(3)}
-          >
             {FaTelegramPlane({ className: "!w-[40%] !h-[40%]" })}
           </Button>
         </div>
@@ -675,13 +720,16 @@ function EmailPage() {
             {currentStep === 2 && renderStep2()}
             {currentStep === 3 && renderStep3()}
             <div className="flex justify-center mt-6 overflow-x-scroll">
-              <Button
-                className="text-lg lg:text-lg bg-[#0F142E] text-white p-4 md:p-6 mr-1 lg:mr-2 xl:py-[1.5rem] xl:px-[1rem] rounded-full hover:bg-[#434C7B]"
-                onClick={() => handleNextStep(-1)}
-              >
-                {FaArrowLeft({})}
-                <span className="hidden xl:inline xl:ml-2">Back</span>
-              </Button>
+              {currentStep !== 1 && (
+                <Button
+                  className="text-lg lg:text-lg bg-[#0F142E] text-white p-4 md:p-6 mr-1 lg:mr-2 xl:py-[1.5rem] xl:px-[1rem] rounded-full hover:bg-[#434C7B]"
+                  onClick={() => handleNextStep(-1)}
+                >
+                  {FaArrowLeft({})}
+                  <span className="hidden xl:inline xl:ml-2">Back</span>
+                </Button>
+              )}
+              
               {currentStep === 1 && (
                 <Button
                   className="text-lg lg:text-lg bg-[#0F142E] text-white p-4 md:p-6 mr-1 lg:mr-2 xl:py-[1.5rem] xl:px-[1rem] rounded-full hover:bg-[#434C7B]"
@@ -693,43 +741,81 @@ function EmailPage() {
               {currentStep === 2 && (
                 <Button
                   className="text-lg lg:text-lg bg-[#0F142E] text-white p-4 md:p-6 mr-1 lg:mr-2 xl:py-[1.5rem] xl:px-[1rem] rounded-full hover:bg-[#434C7B]"
-                  onClick={addStep2Data}
-                >
-                  <span className="ml-2">Add Data</span>
-                </Button>
-              )}
-              {currentStep === 3 && (
-                <Button
-                  className="text-lg lg:text-lg bg-[#0F142E] text-white p-4 md:p-6 mr-1 lg:mr-2 xl:py-[1.5rem] xl:px-[1rem] rounded-full hover:bg-[#434C7B]"
-                  onClick={addStep3Timings}
+                  onClick={addStep2Timings}
                 >
                   <span className="ml-2">Add Timings</span>
                 </Button>
               )}
-              <Button
-                className="text-lg lg:text-lg bg-[#0F142E] text-white p-4 md:p-6 xl:py-[1.5rem] xl:px-[1rem] rounded-full hover:bg-[#434C7B]"
-                onClick={() => handleNextStep(1)}
-              >
-                <span className="hidden xl:inline xl:mr-2">Next</span>
-                {FaArrowRight({})}
-              </Button>
+              {currentStep !== 3 && (
+                <Button
+                  className="text-lg lg:text-lg bg-[#0F142E] text-white p-4 md:p-6 xl:py-[1.5rem] xl:px-[1rem] rounded-full hover:bg-[#434C7B]"
+                  onClick={() => handleNextStep(1)}
+                  disabled={(currentStep === 1 && !isEmailGenerated) || (currentStep === 2 && !isTimeDataAdded) }
+                >
+                  <span className="hidden xl:inline xl:mr-2">Next</span>
+                  {FaArrowRight({})}
+                </Button>
+              )}
+              
             </div>
           </div>
         </div>
-        <div className="bg-[#0F142E] flex flex-col items-center justify-center h-[30rem] lg:h-full flex-auto p-10">
-          <Textarea
-            className="text-lg overflow-y-hidden w-full h-[8%] p-5 pl-10 bg-white rounded-t-lg resize-none"
-            name="template_subject"
-            placeholder="Subject"
-            ref={subjectRef}
+        <div className="bg-[#0F142E] flex flex-col w-screen lg:w-6/12 p-4 lg:p-10 items-center justify-center h-[30rem] lg:h-full flex-auto p-10">
+          {currentStep === 1 && (
+            <>
+              <Textarea
+                className="text-lg overflow-y-hidden w-full h-[8%] p-5 pl-10 bg-white rounded-t-lg resize-none"
+                name="template_subject"
+                placeholder="Subject"
+                value={emailSubject}
+                onChange={(e) => setEmailSubject(e.target.value)}
+              />
+              <Textarea
+                className="text-lg w-full h-[82%] pl-10 pt-5 bg-white rounded-b-lg resize-none"
+                name="template_body"
+                placeholder="Body"
+                value={emailBody}
+                onChange={(e) => setEmailBody(e.target.value)}
+              />
+            </>
+          )}
+          
+          {currentStep === 2 && (
+          <>
+          <div
+            className="text-lg overflow-y-hidden w-full h-[8%] p-5 pl-10 rounded border-b border-gray-400 bg-white rounded-t-lg resize-none"
+            dangerouslySetInnerHTML={{ __html: emailSubject }}
           />
-          <Textarea
-            className="text-lg w-full h-[82%] pl-10 pt-5 bg-white rounded-b-lg resize-none"
-            name="template_body"
-            placeholder="Body"
-            ref={bodyRef}
+          <div
+            className="text-lg w-full h-[82%] pl-10 p-5 bg-white rounded resize-none overflow-auto"
+            dangerouslySetInnerHTML={{ __html: emailBody }}
           />
+        </>
+        )}
+          
+          {isLoading && (
+            <div className="fixed inset-0 z-50 flex items-center justify-center bg-gray-900 bg-opacity-70 backdrop-blur-sm transition-opacity">
+              <div className="flex flex-col items-center gap-5 p-8 bg-white dark:bg-gray-800 rounded-xl shadow-2xl transform transition-all">
+                <div className="relative w-16 h-16">
+                  {/* Outer spinner */}
+                  <div className="absolute inset-0 rounded-full border-4 border-blue-100 dark:border-gray-700"></div>
+                  {/* Animated spinner */}
+                  <div className="absolute inset-0 rounded-full border-4 border-blue-500 border-t-transparent animate-spin"></div>
+                </div>
+                
+                <div className="text-center">
+                  <h3 className="text-lg font-semibold text-gray-800 dark:text-gray-200">
+                    Processing Your Request
+                  </h3>
+                  <p className="mt-1 text-gray-600 dark:text-gray-400">
+                    Elapsed time: <span className="font-mono">{loadingTime}s</span>
+                  </p>
+                </div>
+              </div>
+            </div>
+          )}
         </div>
+
       </div>
     </div>
   );

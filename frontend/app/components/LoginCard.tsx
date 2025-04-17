@@ -1,10 +1,11 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Separator } from '@/components/ui/separator';
+import { AlertCircle } from 'lucide-react';
 
 interface LoginCardProps {
   view: string;
@@ -23,6 +24,9 @@ const LoginCard = ({ view, setView }: LoginCardProps) => {
   const [showLoginErrors, setShowLoginErrors] = useState(false);
   const [showSignupIndErrors, setShowSignupIndErrors] = useState(false);
   const [showSignupBusErrors, setShowSignupBusErrors] = useState(false);
+  const [loginErrorMessage, setLoginErrorMessage] = useState('');
+  
+  const passwordInputRef = useRef<HTMLInputElement>(null);
 
   const handleGoogleLogin = () => {
     window.location.href = '/social-auth/login/google-oauth2/';
@@ -41,8 +45,10 @@ const LoginCard = ({ view, setView }: LoginCardProps) => {
 
   const handleLogin = async () => {
     setShowLoginErrors(true);
+    setLoginErrorMessage('');
+
     if (!isLoginValid()) {
-      console.error('Please fill all required fields: Username, Password');
+      console.error('Please fill all required fields: Email, Password');
       return;
     }
 
@@ -53,18 +59,34 @@ const LoginCard = ({ view, setView }: LoginCardProps) => {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(requestBody),
       });
+
+      const data = await response.json();
+
       if (!response.ok) {
-        const errorData = await response.json();
-        console.error('Login error:', errorData);
+        console.log("Status Code:", response.status);
+        console.error('Login error:', data);
+        if (data?.error === "Invalid email address") {
+          setLoginErrorMessage("Invalid email address.");
+        } else if (data?.error === "Wrong password") {
+          setLoginErrorMessage("Wrong password.");
+        } else if (data?.error === "User not found") {
+          setLoginErrorMessage("User not found.");
+        } else {
+          setLoginErrorMessage("An unexpected error occurred.");
+        }
         return;
       }
-      const data = await response.json();
-      console.log('Login response:', data);
+
       if (data.message === 'Login successful') {
-        window.location.href = '/write-email';
+        if (data.status === "Normal") {
+          window.location.href = '/write_email';
+        } else {
+          window.location.href = '/home';
+        }
       }
     } catch (error) {
       console.error('Error during login:', error);
+      setLoginErrorMessage("Server error. Please try again later.");
     }
   };
 
@@ -138,9 +160,23 @@ const LoginCard = ({ view, setView }: LoginCardProps) => {
   };
 
   const renderLoginForm = () => (
-    <>
+    <form
+      onSubmit={(e) => {
+        e.preventDefault();
+        handleLogin();
+      }}
+    >
       <h1 className="text-3xl font-bold text-center mb-4">Welcome to SmartReachAI</h1>
       <h2 className="text-3xl mb-3 flex justify-center">Login</h2>
+      
+      {/* Error message display */}
+      {loginErrorMessage && (
+        <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded mb-4 flex items-center">
+          <AlertCircle className="h-5 w-5 mr-2" />
+          <span>{loginErrorMessage}</span>
+        </div>
+      )}
+      
       <Label className="block">
         <Input
           className="h-14"
@@ -148,6 +184,13 @@ const LoginCard = ({ view, setView }: LoginCardProps) => {
           placeholder="Username"
           value={username}
           onChange={(e) => setUsername(e.target.value)}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter') {
+              e.preventDefault();
+              if (!username.trim()) return;
+              passwordInputRef.current?.focus();
+            }
+          }}
           required
         />
         {showLoginErrors && !username && <p className="text-red-500 text-sm mt-1">This field is required</p>}
@@ -159,16 +202,26 @@ const LoginCard = ({ view, setView }: LoginCardProps) => {
           placeholder="Password"
           value={password}
           onChange={(e) => setPassword(e.target.value)}
+          ref={passwordInputRef}
           required
         />
         {showLoginErrors && !password && <p className="text-red-500 text-sm mt-1">This field is required</p>}
       </Label>
-      <a href="#" className="text-sm text-blue-500 hover:underline mb-3">
-        Forgot Password?
-      </a>
+      <div className="text-sm text-blue-500 hover:underline py-5">
+        <a 
+          href="#" 
+          className="hover:underline" 
+          onClick={(e) => {
+            e.preventDefault();
+            setView('forgot-password');
+          }}
+        >
+          Forgot Password?
+        </a>
+      </div>
       <Button
+        type="submit"
         className="w-full bg-blue-500 h-14 text-xl text-white py-2 mt-1 rounded-full hover:bg-blue-600 transition-all duration-300 ease-in-out hover:scale-95 hover:shadow-md hover:shadow-blue-500/50 animate-shrink-shadow"
-        onClick={handleLogin}
       >
         Login
       </Button>
@@ -178,12 +231,13 @@ const LoginCard = ({ view, setView }: LoginCardProps) => {
         <Separator className="flex-auto" />
       </div>
       <Button
+        type="button"
         className="w-full bg-red-500 h-14 text-xl text-white py-2 rounded-full hover:bg-red-600 transition-all duration-300 ease-in-out hover:scale-95 hover:shadow-md hover:shadow-red-500/50 animate-shrink-shadow"
         onClick={handleGoogleLogin}
       >
         Login with Google
       </Button>
-    </>
+    </form>
   );
 
   const renderSignupIndividualForm = () => (
