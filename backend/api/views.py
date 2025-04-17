@@ -633,13 +633,14 @@ def get_campaign_details(request):
         org_id_id=org_id,
         campaign_id=campaign_id
     ).values('campaign_start_date', 'campaign_end_date', 'campaign_name', 'campaign_description')
-
+    print(campaign_meta_details)
     campaign_details = CampaignStatistics.objects.filter(
         org_id_id=org_id,
         campaign_id=campaign_id
     ).values('user_click_rate', 'user_open_rate', 'user_engagement_delay')
+    print(campaign_details)
 
-    if not campaign_meta_details.exists() or not campaign_details.exists():
+    if not campaign_meta_details.exists():
         return JsonResponse({'error': 'No campaign details found'}, status=404)
 
     return JsonResponse({

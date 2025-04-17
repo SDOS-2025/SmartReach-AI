@@ -31,6 +31,7 @@ function CampaignDashboardPage() {
         });
         const data = await res.json();
         
+        console.log(data)
         if (data && data.campaign_details.length > 0) {
           setCampaignStats(data.campaign_details[0]);
         }
