@@ -38,7 +38,7 @@ function HomePage() {
 
   // Fetch chart data
   useEffect(() => {
-    fetch('/api/get_chart_data', { credentials: 'include' })
+    fetch('/api/get_chart_data/', { credentials: 'include' })
       .then((res) => res.json())
       .then((data) => {
         const formattedData = data.chart_data.map(item => ({

@@ -10,6 +10,7 @@ pandas
 numpy
 scikit-learn
 openai
+gunicorn
 requests
 google-generativeai
 groq

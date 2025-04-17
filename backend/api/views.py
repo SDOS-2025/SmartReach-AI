@@ -162,20 +162,14 @@ def auth_complete(request):
 @api_view(['GET'])
 def check_auth(request):
     logger.info("Checking authentication")
-    # Extract authToken from Cookie header
-    cookie_header = request.headers.get('Cookie', '')
-    logger.info(f"Cookie header: {cookie_header}")
-    auth_token = None
-    for cookie in cookie_header.split(';'):
-        if 'authToken' in cookie:
-            auth_token = cookie.split('=')[1].strip()
-            break
+    auth_token = request.COOKIES.get('authToken')
+    logger.info(f"Request cookies: {request.COOKIES}")
+    logger.info(f"authToken: {auth_token}")
 
     if not auth_token:
         logger.warning("No authToken found in cookies")
         return JsonResponse({'is_authenticated': False}, status=401)
 
-    # Validate the token
     try:
         token = Token.objects.get(key=auth_token)
         user = token.user
@@ -184,13 +178,11 @@ def check_auth(request):
         logger.warning("Invalid authToken")
         return JsonResponse({'is_authenticated': False}, status=401)
 
-    # Fetch cached values
     user_id = cache.get('user_id')
     if user_id != user.user_id:
         logger.warning("Cached user_id does not match token user")
         cache.set('user_id', user.user_id, timeout=3600)
 
-    # Check organization status
     val = Organization.objects.filter(org_id=user.user_id).first()
     result = 'Business' if val else 'Normal'
 
@@ -221,6 +213,7 @@ def convert_ist_to_utc(ist_date, ist_time):
 @api_view(['GET'])
 def send_time_optim(request):
     # Fetch cached values
+    
     org_id = cache.get('org_id')
     user_id = cache.get('user_id')  # Unused in current logic; included for completeness
     campaign_id = cache.get('campaign_id')
@@ -319,11 +312,12 @@ def user_login_details(request):
 
 
 @csrf_exempt
+@api_view(['POST'])
 def sto_view(request):
     if request.method == "POST":
         try:
             data = json.loads(request.body)
-
+            print(data)
             # Extract organization and users
             organization_id = data.get("organizationId")
             schedule_date = data.get("scheduleDate")  # Format: "YYYY-MM-DD"
@@ -544,17 +538,22 @@ def generate_template_send_time(request):
 
     campaign_details = {}
 
+
     try:
         campaign_start_date = datetime.strptime(f"{start_date} {start_time}", '%Y-%m-%d %H:%M')
+
         campaign_start_time = datetime.strptime(f"{start_date} {start_time}", '%Y-%m-%d %H:%M')
+
         campaign_end_date = datetime.strptime(f"{end_date} 23:59", '%Y-%m-%d %H:%M')
+    
+
     except Exception as e:
         return Response({'error': 'Invalid date or time format'}, status=400)
 
-    uploaded_file = request.FILES.get('dataUpload')
-
-    if not uploaded_file:
-        return Response({'error': 'No file uploaded'}, status=400)
+    # uploaded_file = request.FILES.get('dataUpload')
+    uploaded_file = False
+    # if not uploaded_file:
+    #     return Response({'error': 'No file uploaded'}, status=400)
 
     org_instance = Organization.objects.get(org_id_id=cache.get('org_id'))
 
@@ -568,7 +567,6 @@ def generate_template_send_time(request):
         'campaign_mail_subject': cache.get('Template')['Subject'],
         'send_time': campaign_start_time
     }
-
     try:
         campaign_object = CampaignDetails.objects.create(**campaign_details)
         campaign_id = campaign_object.campaign_id
@@ -576,37 +574,36 @@ def generate_template_send_time(request):
 
         cache.set('campaign_id', campaign_id, timeout=3600)
 
-        if uploaded_file:
-            csv_file = TextIOWrapper(uploaded_file, encoding='utf-8')
-            reader = csv.DictReader(csv_file)
+        # if uploaded_file:
+        #     csv_file = TextIOWrapper(uploaded_file, encoding='utf-8')
+        #     reader = csv.DictReader(csv_file)
             
-            data = [row for row in reader]
+        #     data = [row for row in reader]
 
-            csv_file.seek(0)
+        #     csv_file.seek(0)
 
-            org_id = cache.get('org_id')
-            campaign_id = cache.get('campaign_id')
+        #     org_id = cache.get('org_id')
+        #     campaign_id = cache.get('campaign_id')
 
-            for row in data:
-                row['org_id'] = org_instance
+        #     for row in data:
+        #         row['org_id'] = org_instance
 
-                email = row.get('email')
+        #         email = row.get('email')
 
-                user = CompanyUser.objects.all().filter(email=email).first()
+        #         user = CompanyUser.objects.all().filter(email=email).first()
 
-                if not user:
-                    CompanyUser.objects.create(**row)
+        #         if not user:
+        #             CompanyUser.objects.create(**row)
 
-            response_data = {
-                'message': 'Timings and file received successfully',
-                'start_date': start_date,
-                'start_time': start_time,
-                'end_date': end_date,
-                'file_uploaded': bool(uploaded_file),
-            }
-            return JsonResponse(response_data, status=200)
+        response_data = {
+            'message': 'Timings and file received successfully',
+            'start_date': start_date,
+            'start_time': start_time,
+            'end_date': end_date
+        }
+        #     return JsonResponse(response_data, status=200)
 
-        return JsonResponse({'error': 'Invalid request method'}, status=400)
+        return JsonResponse(response_data, status=200)
 
     except Exception as e:
         logger.error(f"Error generating template: {str(e)}")

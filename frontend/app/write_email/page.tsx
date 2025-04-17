@@ -334,7 +334,7 @@ function EmailPage() {
     }, 1000);
 
     try {
-      const response = await fetch('http://localhost:8000/api/generate-template', {
+      const response = await fetch('/api/generate-template/', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(forlgata),
@@ -371,7 +371,7 @@ function EmailPage() {
       console.log('Updating email with subject:', emailSubject);
       console.log('Updating email with body:', emailBody);
   
-      const response = await fetch('http://localhost:8000/api/update-email', {
+      const response = await fetch('/api/update-email/', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -406,7 +406,7 @@ function EmailPage() {
     }, 1000);
 
     try {
-      const response = await fetch('http://localhost:8000/api/get-email-original/', {
+      const response = await fetch('/api/get-email-original/', {
         method: 'GET',
       });
       const data = await response.json();
@@ -431,7 +431,7 @@ function EmailPage() {
     }, 1000);
 
     try {
-      const response = await fetch('http://localhost:8000/api/get-email/', {
+      const response = await fetch('/api/get-email/', {
         method: 'GET',
       });
       const data = await response.json();

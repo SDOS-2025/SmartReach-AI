@@ -28,7 +28,7 @@ SECRET_KEY = 'django-insecure-2f#z$_md2-tr0gs+z6%4t0^r05$1#*2@6-#pm%$1f@n%mrpzgb
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['smartreachai.social', '172.30.2.113', 'localhost', '127.0.0.1']
+ALLOWED_HOSTS = ['smartreachai.social', '172.30.2.113', 'localhost']
 
 
 # Application definition
@@ -82,6 +82,8 @@ AUTHENTICATION_BACKENDS = (
 CORS_ALLOW_CREDENTIALS = True
 CORS_ALLOWED_ORIGINS = [
     "http://localhost:3000",
+    "https://smartreachai.social"
+    
 ]
 CORS_ALLOW_HEADERS = [
     'accept',
@@ -272,7 +274,7 @@ SOCIAL_AUTH_USER_MODEL = 'api.User'
 
 
 # Celery settings
-CELERY_BROKER_URL = "redis://localhost:6379/0"
+CELERY_BROKER_URL = "redis://localhost:6380/0"
 CELERY_ACCEPT_CONTENT = ["json"]
 CELERY_TASK_SERIALIZER = "json"
 

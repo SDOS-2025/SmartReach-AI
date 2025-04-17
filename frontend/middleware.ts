@@ -1,68 +1,99 @@
+// middleware.js
+import { matchesMiddleware } from 'next/dist/shared/lib/router/router';
 import { NextResponse } from 'next/server';
 
 export async function middleware(request: any) {
   const { pathname } = request.nextUrl;
 
-  // Define protected routes
-  const protectedRoutes = ['/write-email', '/home', '/dashboard/:path*', '/admin', '/write_email'];
 
-  // Check if the current route is protected
-  if (protectedRoutes.some(route => pathname === route || pathname.startsWith(route.replace('/:path*', '')))) {
-    console.log('Cookies sent:', request.headers.get('cookie')); // Debug cookies
-    const authResponse = await fetch('http://localhost:8000/api/check-auth', {
-      method: 'GET',
-      headers: {
-        ...(request.headers.get('cookie') && { Cookie: request.headers.get('cookie') }),
-      },
-      credentials: 'include',
-    });
-
-    console.log('Auth response status:', authResponse.status); // Debug response
-    if (!authResponse.ok) {
-      console.error('Auth check failed:', authResponse.status, authResponse.statusText);
-      return NextResponse.redirect(new URL('/login', request.url));
-    }
-
-    const authData = await authResponse.json();
-    if (!authData.is_authenticated) {
-      return NextResponse.redirect(new URL('/login', request.url));
-    }
-
-    // Redirect based on status
-    if (pathname === '/write-email' && authData.status !== 'Normal') {
-      return NextResponse.redirect(new URL('/home', request.url));
-    }
-    if (pathname !== '/write-email' && authData.status === 'Normal') {
-      return NextResponse.redirect(new URL('/write-email', request.url));
-    }
-  }
-
-  // Handle /login route
-  if (pathname === '/login') {
-    console.log('Cookies sent for login:', request.headers.get('cookie')); // Debug cookies
-    const authResponse = await fetch('http://localhost:8000/api/check-auth', {
-      method: 'GET',
-      headers: {
-        ...(request.headers.get('cookie') && { Cookie: request.headers.get('cookie') }),
-      },
-      credentials: 'include',
-    });
-
-    if (authResponse.ok) {
+  if (pathname === '/login'){
+    const authResponse = await fetch('https://smartreachai.social/api/check-auth/', {
+        method: 'GET',
+        headers: {
+          Cookie: request.headers.get('cookie') || '', // Forward cookies from the request
+        },
+      });
+  
+      if (!authResponse.ok) {
+        // Not authenticated, redirect to /login
+        return NextResponse.next();
+      }
+  
       const authData = await authResponse.json();
-      if (authData.is_authenticated) {
-        if (authData.status === 'Normal') {
+      if (!authData.is_authenticated) {
+        // Not authenticated, redirect to /login
+        return NextResponse.next();
+      }
+  
+      if (authData.status === "Normal"){
           return NextResponse.redirect(new URL('/write_email', request.url));
-        } else {
+      }
+      else {
           return NextResponse.redirect(new URL('/home', request.url));
-        }
       }
     }
+  if (pathname === '/write-email' || pathname === '/home' || pathname.startsWith('/dashboard') || pathname === '/admin') {
+      // Fetch auth status from your API
+      const authResponse = await fetch('https://smartreachai.social/api/check-auth/', {
+      method: 'GET',
+      headers: {
+          Cookie: request.headers.get('cookie') || '', // Forward cookies from the request
+      },
+      });
+
+      if (!authResponse.ok) {
+      // Not authenticated, redirect to /login
+      return NextResponse.redirect(new URL('/login', request.url));
+      }
+
+      const authData = await authResponse.json();
+      if (!authData.is_authenticated) {
+      // Not authenticated, redirect to /login
+      return NextResponse.redirect(new URL('/login', request.url));
+      }
+
+      if (authData.status != "Normal"){
+          return NextResponse.next();
+      }
+      else {
+          return NextResponse.redirect(new URL('/write_email', request.url));
+      }
+  
   }
 
+  if (pathname === '/write_email'){
+    const authResponse = await fetch('https://smartreachai.social/api/check-auth/', {
+      method: 'GET',
+      headers: {
+          Cookie: request.headers.get('cookie') || '', // Forward cookies from the request
+      },
+      });
+
+      if (!authResponse.ok) {
+      // Not authenticated, redirect to /login
+      return NextResponse.redirect(new URL('/login', request.url));
+      }
+
+      const authData = await authResponse.json();
+      if (!authData.is_authenticated) {
+      // Not authenticated, redirect to /login
+      return NextResponse.redirect(new URL('/login', request.url));
+      }
+
+      if (authData.status === "Normal"){
+          return NextResponse.next();
+      }
+      else {
+          return NextResponse.redirect(new URL('/home', request.url));
+      }
+  }
+
+  
+
+  // For all other routes, proceed as normal
   return NextResponse.next();
 }
 
 export const config = {
-  matcher: ['/write-email', '/home', '/dashboard/:path*', '/login', '/admin', '/write_email'],
+  matcher: ['/write-email', '/home', '/dashboard/:id*', '/login', '/admin', '/write_email'], 
 };

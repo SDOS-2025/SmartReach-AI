@@ -512,7 +512,7 @@ function EmailPage() {
     }, 1000);
 
     try {
-      const response = await fetch('http://localhost:8000/api/generate-template', {
+      const response = await fetch('/api/generate-template/', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(forlgata),
@@ -548,7 +548,7 @@ function EmailPage() {
       console.log('Updating email with subject:', emailSubject);
       console.log('Updating email with body:', emailBody);
   
-      const response = await fetch('http://localhost:8000/api/update-email', {
+      const response = await fetch('/api/update-email/', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -583,7 +583,7 @@ function EmailPage() {
     }, 1000);
 
     try {
-      const response = await fetch('http://localhost:8000/api/get-email-original/', {
+      const response = await fetch('/api/get-email-original/', {
         method: 'GET',
       });
       const data = await response.json();
@@ -608,7 +608,7 @@ function EmailPage() {
     }, 1000);
 
     try {
-      const response = await fetch('http://localhost:8000/api/get-email/', {
+      const response = await fetch('/api/get-email/', {
         method: 'GET',
       });
       const data = await response.json();
@@ -626,7 +626,7 @@ function EmailPage() {
 
   const sendTimeOptim = async () => {
     try {
-      const response = await fetch('http://localhost:8000/api/sto', {
+      const response = await fetch('/api/sto/', {
         method: 'GET',
         headers: { 'Content-Type': 'application/json' },
       });
@@ -642,7 +642,7 @@ function EmailPage() {
 
   const fetchAndAutofillOptimalStartTime = async () => {
     try {
-      const response = await fetch('http://localhost:8000/api/optimal-start-time', {
+      const response = await fetch('/api/optimal-start-time/', {
         method: 'GET',
         headers: { 'Content-Type': 'application/json' },
       });
@@ -687,7 +687,7 @@ function EmailPage() {
     });
 
     try {
-      const response = await fetch('http://localhost:8000/api/send-time-instructions-template', {
+      const response = await fetch('/api/send-time-instructions-template/', {
         method: 'POST',
         body: formData,
       });

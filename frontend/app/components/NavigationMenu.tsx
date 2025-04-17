@@ -16,7 +16,7 @@ function NavigationMenu({ isLoggedIn: propIsLoggedIn }) {
   useEffect(() => {
     const fetchUsername = async () => {
       try {
-        const res = await fetch('http://localhost:8000/api/get-username', {
+        const res = await fetch('/api/get-username/', {
           method: 'GET',
           credentials: 'include',
         });
@@ -40,7 +40,7 @@ function NavigationMenu({ isLoggedIn: propIsLoggedIn }) {
       return;
     }
 
-    fetch('http://localhost:8000/api/check-auth', {
+    fetch('/api/check-auth/', {
       method: 'GET',
       credentials: 'include',
     })
@@ -73,7 +73,7 @@ function NavigationMenu({ isLoggedIn: propIsLoggedIn }) {
   }, []);
 
   const handleLogout = () => {
-    fetch('http://localhost:8000/api/logout/', {
+    fetch('/api/logout/', {
       method: 'GET',
       credentials: 'include',
     })

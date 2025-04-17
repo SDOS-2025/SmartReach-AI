@@ -41,7 +41,7 @@ const [selectAll, setSelectAll] = useState(false);
 
 
         // Fetch users (CompanyUser)
-        const usersResponse = await fetch("http://localhost:8000/api/get-company-users/", {
+        const usersResponse = await fetch("/api/get-company-users/", {
           headers: { "Authorization": `Token ${token}` },
           credentials: "include",
         });
@@ -51,7 +51,7 @@ const [selectAll, setSelectAll] = useState(false);
         setFilteredUsers(usersData.company_users || []);
 
         // Fetch engagement data for chart
-        const chartResponse = await fetch("http://localhost:8000/api/user-engagement-stats/", {
+        const chartResponse = await fetch("/api/user-engagement-stats/", {
           headers: { "Authorization": `Token ${token}` },
           credentials: "include",
         });
@@ -100,7 +100,7 @@ const [selectAll, setSelectAll] = useState(false);
       // const token = localStorage.getItem("authToken");
       const token = localStorage.getItem("authToken")
       console.log(token);
-      const response = await fetch("http://localhost:8000/api/add-user/", {
+      const response = await fetch("/api/add-user/", {
         method: "POST",
         headers:{"Content-Type":"application/json"},
         body: JSON.stringify(formData),
@@ -139,7 +139,7 @@ const [selectAll, setSelectAll] = useState(false);
       const token = localStorage.getItem("authToken");
       const formData = new FormData();
       formData.append("file", csvFile);
-      const response = await fetch("http://localhost:8000/api/upload-company-users-csv/", {
+      const response = await fetch("/api/upload-company-users-csv/", {
         method: "POST",
         body: formData,
       });
@@ -188,7 +188,7 @@ const [selectAll, setSelectAll] = useState(false);
     if (selectedUsers.size === 0) return;
     try {
       const token = localStorage.getItem("authToken");
-      await fetch("http://localhost:8000/api/delete-users/", {
+      await fetch("/api/delete-users/", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
