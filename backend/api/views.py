@@ -52,10 +52,12 @@ def login_view(request):
 
     except ValidationError:
         return JsonResponse({'error': 'Invalid email address'}, status=400)
-
+    print("Trying...")
     # Try to get the user manually
     user = authenticate(request, username=username, password=password)
-
+    print("user is authenticated")
+    print(user)
+    
     if user is None:
         user_ideal = User.objects.filter(username=username).first()
         if user_ideal:
@@ -89,20 +91,16 @@ def login_view(request):
         'status': 'Normal' if org is None else 'Business'
     })
 
-    try:
-        response.set_cookie(
-            'authToken',
-            token.key,
-            httponly=True,
-            max_age=3600,
-        )
+    response.set_cookie(
+        'authToken',
+        token.key,
+        httponly=True,
+        max_age=3600,
+    )
 
-        return response
+    return response
 
-    except Exception as e:
-        logger.error(f"Error setting cookie: {str(e)}")
-        return Response({'error': 'Internal Server Error'}, status=500)
-
+    
 @csrf_exempt
 @api_view(['GET'])
 def user_logout(request):
@@ -163,24 +161,43 @@ def auth_complete(request):
 
 @api_view(['GET'])
 def check_auth(request):
-    """Check if user is authenticated and return status + token"""
-    if request.user.is_authenticated:
-        # Fetch cached values
-        user_id = cache.get('user_id')
+    logger.info("Checking authentication")
+    # Extract authToken from Cookie header
+    cookie_header = request.headers.get('Cookie', '')
+    logger.info(f"Cookie header: {cookie_header}")
+    auth_token = None
+    for cookie in cookie_header.split(';'):
+        if 'authToken' in cookie:
+            auth_token = cookie.split('=')[1].strip()
+            break
 
-        if user_id is None:
-            return Response({'is_authenticated': False}, status=401)
+    if not auth_token:
+        logger.warning("No authToken found in cookies")
+        return JsonResponse({'is_authenticated': False}, status=401)
 
-        val = Organization.objects.filter(org_id=user_id).first()
-        result = 'Business' if val else 'Normal'
-        token, _ = Token.objects.get_or_create(user=request.user)
+    # Validate the token
+    try:
+        token = Token.objects.get(key=auth_token)
+        user = token.user
+        logger.info(f"Authenticated user: {user.username}")
+    except Token.DoesNotExist:
+        logger.warning("Invalid authToken")
+        return JsonResponse({'is_authenticated': False}, status=401)
 
-        return Response({
-            'is_authenticated': True,
-            'status': result,
-        })
-    
-    return Response({'is_authenticated': False}, status=401)
+    # Fetch cached values
+    user_id = cache.get('user_id')
+    if user_id != user.user_id:
+        logger.warning("Cached user_id does not match token user")
+        cache.set('user_id', user.user_id, timeout=3600)
+
+    # Check organization status
+    val = Organization.objects.filter(org_id=user.user_id).first()
+    result = 'Business' if val else 'Normal'
+
+    return JsonResponse({
+        'is_authenticated': True,
+        'status': result,
+    })
 
 def convert_ist_to_utc(ist_date, ist_time):
     """Convert IST date and time to UTC."""
@@ -284,7 +301,6 @@ def send_time_optim(request):
         "message": "Emails scheduled successfully",
         "scheduled_times": scheduled_times
     })
-
 
 
 @api_view(['GET'])
